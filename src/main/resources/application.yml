@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: final-project
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:final-projectDB
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+  h2:
+    console:
+      enabled: true
