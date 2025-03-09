@@ -1,8 +1,8 @@
 package patika.defineX.service;
 
 import org.springframework.stereotype.Service;
-import patika.defineX.dto.UserRequest;
-import patika.defineX.dto.UserResponse;
+import patika.defineX.dto.request.UserRequest;
+import patika.defineX.dto.response.UserResponse;
 import patika.defineX.exception.custom.UserNotFoundException;
 import patika.defineX.model.enums.Role;
 import patika.defineX.model.User;

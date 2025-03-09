@@ -1,4 +1,4 @@
-package patika.defineX.dto;
+package patika.defineX.dto.request;
 
 import patika.defineX.model.User;
 

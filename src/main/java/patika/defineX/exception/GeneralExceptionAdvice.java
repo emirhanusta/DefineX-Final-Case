@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import patika.defineX.exception.custom.DepartmentNotFoundException;
 import patika.defineX.exception.custom.UserNotFoundException;
 
 import java.util.HashMap;
@@ -38,6 +39,13 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.NOT_FOUND, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(DepartmentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDepartmentNotFoundException(DepartmentNotFoundException ex, HttpServletRequest req) {
         return new ResponseEntity<>(new ErrorResponse(
                 ex.getMessage(), HttpStatus.NOT_FOUND, System.currentTimeMillis(), req.getRequestURI()),
                 HttpStatus.NOT_FOUND);

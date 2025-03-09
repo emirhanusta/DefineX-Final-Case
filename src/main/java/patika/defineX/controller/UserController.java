@@ -3,8 +3,8 @@ package patika.defineX.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import patika.defineX.dto.UserRequest;
-import patika.defineX.dto.UserResponse;
+import patika.defineX.dto.request.UserRequest;
+import patika.defineX.dto.response.UserResponse;
 import patika.defineX.service.UserService;
 
 import java.util.List;
