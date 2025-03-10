@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import patika.defineX.exception.custom.DepartmentNotFoundException;
+import patika.defineX.exception.custom.ProjectNotFoundException;
+import patika.defineX.exception.custom.StatusChangeException;
 import patika.defineX.exception.custom.UserNotFoundException;
 
 import java.util.HashMap;
@@ -49,5 +51,19 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new ErrorResponse(
                 ex.getMessage(), HttpStatus.NOT_FOUND, System.currentTimeMillis(), req.getRequestURI()),
                 HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ProjectNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleProjectNotFoundException(ProjectNotFoundException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.NOT_FOUND, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(StatusChangeException.class)
+    public ResponseEntity<ErrorResponse> handleProjectNotFoundException(StatusChangeException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.BAD_REQUEST, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.BAD_REQUEST);
     }
 }

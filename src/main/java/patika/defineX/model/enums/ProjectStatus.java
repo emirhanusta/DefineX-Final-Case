@@ -1,6 +1,6 @@
 package patika.defineX.model.enums;
 
-public enum ProjectState {
+public enum ProjectStatus {
     IN_PROGRESS,
     ON_HOLD,
     CANCELLED,

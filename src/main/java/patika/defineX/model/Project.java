@@ -2,9 +2,8 @@ package patika.defineX.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import patika.defineX.model.enums.ProjectState;
+import patika.defineX.model.enums.ProjectStatus;
 
-import java.util.List;
 
 @Entity
 @Getter
@@ -23,13 +22,8 @@ public class Project extends BaseEntity {
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
-    @OneToMany
-    private List<Team> teams;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ProjectState status;
+    private ProjectStatus status;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Issue> issues;
 }
