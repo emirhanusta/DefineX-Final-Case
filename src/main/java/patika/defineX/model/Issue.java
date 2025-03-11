@@ -7,7 +7,6 @@ import patika.defineX.model.enums.PriorityLevel;
 import patika.defineX.model.enums.IssueStatus;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Getter
@@ -54,13 +53,4 @@ public class Issue extends BaseEntity {
     private PriorityLevel priority;
 
     private LocalDateTime dueDate;
-
-    @OneToMany
-    private List<IssueComment> comments;
-
-    @OneToMany
-    private List<IssueHistory> histories;
-
-    @OneToMany
-    private List<IssueAttachment> attachments;
 }

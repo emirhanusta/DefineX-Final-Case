@@ -3,7 +3,7 @@ package patika.defineX.service;
 import org.springframework.stereotype.Service;
 import patika.defineX.dto.request.UserRequest;
 import patika.defineX.dto.response.UserResponse;
-import patika.defineX.exception.custom.UserNotFoundException;
+import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.model.enums.Role;
 import patika.defineX.model.User;
 import patika.defineX.repository.UserRepository;
@@ -40,7 +40,6 @@ public class UserService {
     public UserResponse update(UUID id, UserRequest userRequest) {
         User user = findById(id);
         user.setName(userRequest.name());
-        user.setSurname(userRequest.surname());
         user.setEmail(userRequest.email());
         user.setPassword(userRequest.password());
         return UserResponse.from(userRepository.save(user));
@@ -52,8 +51,8 @@ public class UserService {
         userRepository.save(user);
     }
 
-    private User findById(UUID id) {
+    protected User findById(UUID id) {
         return userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new UserNotFoundException("User not found with id: " + id));
+                () -> new CustomNotFoundException("User not found with id: " + id));
     }
 }

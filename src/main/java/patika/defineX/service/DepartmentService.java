@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.DepartmentRequest;
 import patika.defineX.dto.response.DepartmentResponse;
 import patika.defineX.event.DepartmentDeletedEvent;
-import patika.defineX.exception.custom.DepartmentNotFoundException;
+import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.model.Department;
 import patika.defineX.repository.DepartmentRepository;
 
@@ -23,7 +23,6 @@ public class DepartmentService {
         this.departmentRepository = departmentRepository;
         this.applicationEventPublisher = applicationEventPublisher;
     }
-
 
     public List<DepartmentResponse> listAll() {
         return departmentRepository.findAllByIsDeletedFalse().stream()
@@ -56,7 +55,7 @@ public class DepartmentService {
 
     protected Department findById(UUID id) {
         return departmentRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
-                () -> new DepartmentNotFoundException("Department not found with id: " + id));
+                () -> new CustomNotFoundException("Department not found with id: " + id));
     }
 
 }

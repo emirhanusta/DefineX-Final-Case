@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import patika.defineX.exception.custom.DepartmentNotFoundException;
-import patika.defineX.exception.custom.ProjectNotFoundException;
-import patika.defineX.exception.custom.StatusChangeException;
-import patika.defineX.exception.custom.UserNotFoundException;
+import patika.defineX.exception.custom.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,29 +36,15 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException ex, HttpServletRequest req) {
-        return new ResponseEntity<>(new ErrorResponse(
-                ex.getMessage(), HttpStatus.NOT_FOUND, System.currentTimeMillis(), req.getRequestURI()),
-                HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(DepartmentNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleDepartmentNotFoundException(DepartmentNotFoundException ex, HttpServletRequest req) {
-        return new ResponseEntity<>(new ErrorResponse(
-                ex.getMessage(), HttpStatus.NOT_FOUND, System.currentTimeMillis(), req.getRequestURI()),
-                HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(ProjectNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleProjectNotFoundException(ProjectNotFoundException ex, HttpServletRequest req) {
+    @ExceptionHandler(CustomNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFoundException(CustomNotFoundException ex, HttpServletRequest req) {
         return new ResponseEntity<>(new ErrorResponse(
                 ex.getMessage(), HttpStatus.NOT_FOUND, System.currentTimeMillis(), req.getRequestURI()),
                 HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(StatusChangeException.class)
-    public ResponseEntity<ErrorResponse> handleProjectNotFoundException(StatusChangeException ex, HttpServletRequest req) {
+    public ResponseEntity<ErrorResponse> handleStatusChangeException(StatusChangeException ex, HttpServletRequest req) {
         return new ResponseEntity<>(new ErrorResponse(
                 ex.getMessage(), HttpStatus.BAD_REQUEST, System.currentTimeMillis(), req.getRequestURI()),
                 HttpStatus.BAD_REQUEST);

@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.ProjectRequest;
 import patika.defineX.dto.response.ProjectResponse;
 import patika.defineX.event.DepartmentDeletedEvent;
-import patika.defineX.exception.custom.ProjectNotFoundException;
+import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.exception.custom.StatusChangeException;
 import patika.defineX.model.Project;
 import patika.defineX.model.enums.ProjectStatus;
@@ -76,8 +76,8 @@ public class ProjectService {
     }
 
 
-    private Project findById(UUID id) {
+    protected Project findById(UUID id) {
         return projectRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new ProjectNotFoundException("Project not found with id: " + id));
+                .orElseThrow(() -> new CustomNotFoundException("Project not found with id: " + id));
     }
 }

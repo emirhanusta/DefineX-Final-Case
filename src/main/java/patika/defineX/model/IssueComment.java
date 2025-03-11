@@ -12,7 +12,7 @@ import lombok.*;
 public class IssueComment extends BaseEntity {
 
     @ManyToOne
-    @JoinColumn(name = "task_id", nullable = false)
+    @JoinColumn(name = "issue_id", nullable = false)
     private Issue issue;
 
     @ManyToOne

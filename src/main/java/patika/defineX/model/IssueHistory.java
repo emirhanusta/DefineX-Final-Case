@@ -13,7 +13,7 @@ import patika.defineX.model.enums.IssueStatus;
 public class IssueHistory extends BaseEntity {
 
     @ManyToOne
-    @JoinColumn(name = "task_id", nullable = false)
+    @JoinColumn(name = "issue_id", nullable = false)
     private Issue issue;
 
     @Enumerated(EnumType.STRING)
