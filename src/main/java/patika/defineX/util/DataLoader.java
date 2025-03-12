@@ -22,6 +22,8 @@ public class DataLoader {
     private final IssueHistoryRepository issueHistoryRepository;
     private final IssueCommentRepository issueCommentRepository;
     private final IssueAttachmentRepository issueAttachmentRepository;
+    private final TeamRepository teamRepository;
+    private final TeamMemberRepository teamMemberRepository;
 
     @EventListener(ApplicationReadyEvent.class)
     public void loadData() {
@@ -67,5 +69,18 @@ public class DataLoader {
         IssueAttachment issueAttachment = IssueAttachment.builder().issue(task).fileName("Attachment").filePath("url").build();
         IssueAttachment issueAttachment2 = IssueAttachment.builder().issue(bug).fileName("Attachment2").filePath("url2").build();
         issueAttachmentRepository.saveAll(List.of(issueAttachment, issueAttachment2));
+
+        //team
+        Team team = Team.builder().name("Team").project(projectA).build();
+        teamRepository.save(team);
+
+
+        //teamMember
+        TeamMember teamMember1 = TeamMember.builder().team(team).user(teamLead).build();
+        TeamMember teamMember2 = TeamMember.builder().team(team).user(teamMember).build();
+        teamMemberRepository.saveAll(List.of(teamMember1,teamMember2));
+
+
+        teamRepository.save(team);
     }
 }

@@ -2,6 +2,7 @@ package patika.defineX.service;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.response.IssueHistoryResponse;
 import patika.defineX.event.HistoryCreatedEvent;
 import patika.defineX.event.IssueDeletedEvent;
@@ -47,7 +48,8 @@ public class IssueHistoryService {
     }
 
     @EventListener
-    public void onIssueDelete(IssueDeletedEvent event) {
+    @Transactional
+    public void deleteIssueHistories(IssueDeletedEvent event) {
         List<IssueHistory> issueHistories = findAllByIssueIdAndIsDeletedFalse(event.issueId());
         issueHistories.forEach(issueHistory -> issueHistory.setDeleted(true));
         issueHistoryRepository.saveAll(issueHistories);

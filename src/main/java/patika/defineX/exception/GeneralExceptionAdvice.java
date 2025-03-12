@@ -49,4 +49,11 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
                 ex.getMessage(), HttpStatus.BAD_REQUEST, System.currentTimeMillis(), req.getRequestURI()),
                 HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(AlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadyExistException(AlreadyExistException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.BAD_REQUEST, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.BAD_REQUEST);
+    }
 }

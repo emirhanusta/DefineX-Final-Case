@@ -2,6 +2,7 @@ package patika.defineX.service;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.IssueCommentRequest;
 import patika.defineX.dto.response.IssueCommentResponse;
 import patika.defineX.event.IssueDeletedEvent;
@@ -58,7 +59,8 @@ public class IssueCommentService {
     }
 
     @EventListener
-    public void onIssueDelete(IssueDeletedEvent event) {
+    @Transactional
+    public void deleteIssueComments(IssueDeletedEvent event) {
         List<IssueComment> issueComments = issueCommentRepository.findAllByIssueIdAndIsDeletedFalse(event.issueId());
         issueComments.forEach(issueComment -> issueComment.setDeleted(true));
         issueCommentRepository.saveAll(issueComments);

@@ -9,18 +9,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TeamMember {
-
-    @EmbeddedId
-    private TeamMemberId id;
+public class TeamMember extends BaseEntity{
 
     @ManyToOne
-    @MapsId("teamId")
-    @JoinColumn(name = "team_id")
+    @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
     @ManyToOne
-    @MapsId("userId")
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }

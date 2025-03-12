@@ -2,6 +2,7 @@ package patika.defineX.service;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.IssueAttachmentRequest;
 import patika.defineX.dto.response.IssueAttachmentResponse;
 import patika.defineX.event.IssueDeletedEvent;
@@ -44,7 +45,8 @@ public class IssueAttachmentService {
     }
 
     @EventListener
-    public void onDeletedIssue(IssueDeletedEvent event) {
+    @Transactional
+    public void deleteIssueAttachments(IssueDeletedEvent event) {
         List<IssueAttachment> issueAttachments = findByIssueIdAndIsDeletedFalse(event.issueId());
         issueAttachments.forEach(issueAttachment -> issueAttachment.setDeleted(true));
         issueAttachmentRepository.saveAll(issueAttachments);

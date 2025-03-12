@@ -1,11 +1,13 @@
 package patika.defineX.service;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.ProjectRequest;
 import patika.defineX.dto.response.ProjectResponse;
 import patika.defineX.event.DepartmentDeletedEvent;
+import patika.defineX.event.ProjectDeletedEvent;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.exception.custom.StatusChangeException;
 import patika.defineX.model.Project;
@@ -20,10 +22,13 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final DepartmentService departmentService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public ProjectService(ProjectRepository projectRepository, DepartmentService departmentService) {
+    public ProjectService(ProjectRepository projectRepository, DepartmentService departmentService,
+                          ApplicationEventPublisher applicationEventPublisher) {
         this.projectRepository = projectRepository;
         this.departmentService = departmentService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     public List<ProjectResponse> listAllByDepartmentId(UUID departmentId) {
@@ -56,6 +61,7 @@ public class ProjectService {
         Project project = findById(id);
         project.setDeleted(true);
         projectRepository.save(project);
+        applicationEventPublisher.publishEvent(new ProjectDeletedEvent(project.getId()));
     }
 
     public ProjectResponse updateStatus(UUID id, String status) {
