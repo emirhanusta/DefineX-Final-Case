@@ -1,6 +1,7 @@
 package patika.defineX.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.UserRequest;
 import patika.defineX.dto.response.UserResponse;
 import patika.defineX.exception.custom.CustomNotFoundException;
@@ -15,9 +16,11 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final TeamMemberService teamMemberService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, TeamMemberService teamMemberService) {
         this.userRepository = userRepository;
+        this.teamMemberService = teamMemberService;
     }
 
     public List<UserResponse> listAll() {
@@ -45,10 +48,12 @@ public class UserService {
         return UserResponse.from(userRepository.save(user));
     }
 
+    @Transactional
     public void delete(UUID id) {
         User user = findById(id);
         user.setDeleted(true);
         userRepository.save(user);
+        teamMemberService.deleteAllByUserId(id);
     }
 
     protected User findById(UUID id) {

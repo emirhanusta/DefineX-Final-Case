@@ -52,7 +52,7 @@ public class ProjectService {
         Project project = findById(id);
         project.setTitle(projectRequest.title());
         project.setDescription(projectRequest.description());
-        project.setStatus(ProjectStatus.valueOf(projectRequest.status()));
+        project.setStatus(projectRequest.status());
         project.setDepartment(departmentService.findById(projectRequest.departmentId()));
         return ProjectResponse.from(projectRepository.save(project));
     }
@@ -77,7 +77,10 @@ public class ProjectService {
     @Transactional
     protected void deleteAllByDepartmentId(DepartmentDeletedEvent event) {
         List<Project> projects = projectRepository.findAllByDepartmentIdAndIsDeletedFalse(event.departmentId());
-        projects.forEach(project -> project.setDeleted(true));
+        projects.forEach(project -> {
+            project.setDeleted(true);
+            applicationEventPublisher.publishEvent(new ProjectDeletedEvent(project.getId()));
+        });
         projectRepository.saveAll(projects);
     }
 

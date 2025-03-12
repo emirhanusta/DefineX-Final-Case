@@ -1,13 +1,13 @@
 package patika.defineX.service;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.TeamRequest;
+import patika.defineX.dto.response.TeamMemberListResponse;
+import patika.defineX.dto.response.TeamMemberResponse;
 import patika.defineX.dto.response.TeamResponse;
 import patika.defineX.event.ProjectDeletedEvent;
-import patika.defineX.event.TeamDeletedEvent;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.model.Project;
 import patika.defineX.model.Team;
@@ -25,15 +25,13 @@ public class TeamService {
     private final ProjectService projectService;
     private final UserService userService;
     private final TeamMemberService teamMemberService;
-    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public TeamService(TeamRepository teamRepository, ProjectService projectService, UserService userService,
-                       TeamMemberService teamMemberService, ApplicationEventPublisher applicationEventPublisher) {
+    public TeamService(TeamRepository teamRepository, ProjectService projectService,
+                       UserService userService,TeamMemberService teamMemberService) {
         this.teamRepository = teamRepository;
         this.projectService = projectService;
         this.userService = userService;
         this.teamMemberService = teamMemberService;
-        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     public List<TeamResponse> getAllTeamsByProjectId(UUID projectId) {
@@ -44,8 +42,14 @@ public class TeamService {
                 .toList();
     }
 
-    public TeamResponse getTeamById(UUID teamId) {
-        return TeamResponse.from(findById(teamId));
+    public TeamMemberListResponse getTeamById(UUID teamId) {
+        Team team = findById(teamId);
+        List<TeamMemberResponse> teamMembers = teamMemberService.getAllByTeamId(teamId);
+        return new TeamMemberListResponse(
+                teamId,
+                team.getName(),
+                teamMembers
+        );
     }
 
     public TeamResponse save (TeamRequest teamRequest) {
@@ -70,25 +74,26 @@ public class TeamService {
     public void delete(UUID id) {
         Team team = findById(id);
         team.setDeleted(true);
-        //team.getMembers().clear();
         teamRepository.save(team);
-        //teamMemberService.deleteAllByTeamId(id);
-        applicationEventPublisher.publishEvent(new TeamDeletedEvent(id));
+        teamMemberService.deleteAllByTeamId(id);
     }
 
     @Transactional
-    public TeamResponse addTeamMember(UUID teamId, UUID userId) {
+    public TeamMemberListResponse addTeamMember(UUID teamId, UUID userId) {
         Team team = findById(teamId);
         User user = userService.findById(userId);
-        team.getMembers().add(teamMemberService.createTeamMember(team, user));
-        return TeamResponse.from(teamRepository.save(team));
+        teamMemberService.createTeamMember(team, user);
+        return new TeamMemberListResponse(
+                teamId,
+                team.getName(),
+                teamMemberService.getAllByTeamId(teamId)
+        );
     }
 
     @Transactional
     public void removeTeamMember(UUID teamMemberId) {
         TeamMember teamMember = teamMemberService.findById(teamMemberId);
         Team team = teamMember.getTeam();
-        team.getMembers().remove(teamMember);
         teamRepository.save(team);
         teamMemberService.removeTeamMember(teamMemberId);
     }
@@ -99,10 +104,7 @@ public class TeamService {
         List<Team> teams = teamRepository.findAllByProjectIdAndIsDeletedFalse(event.id());
         teams.forEach(team -> {
             team.setDeleted(true);
-            //team.getMembers().clear();
-
-            //teamMemberService.deleteAllByTeamId(team.getId());
-            applicationEventPublisher.publishEvent(new TeamDeletedEvent(team.getId()));
+            teamMemberService.deleteAllByTeamId(team.getId());
         });
         teamRepository.saveAll(teams);
     }

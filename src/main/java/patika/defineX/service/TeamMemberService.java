@@ -1,8 +1,7 @@
 package patika.defineX.service;
 
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import patika.defineX.event.TeamDeletedEvent;
+import patika.defineX.dto.response.TeamMemberResponse;
 import patika.defineX.exception.custom.AlreadyExistException;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.model.Team;
@@ -23,7 +22,14 @@ public class TeamMemberService {
         this.teamMemberRepository = teamMemberRepository;
     }
 
-    public TeamMember createTeamMember(Team team, User user) {
+    public List<TeamMemberResponse> getAllByTeamId(UUID teamId) {
+        return teamMemberRepository.findAllByTeamIdAndIsDeletedFalse(teamId)
+                .stream()
+                .map(TeamMemberResponse::from)
+                .toList();
+    }
+
+    public void createTeamMember(Team team, User user) {
         Optional<TeamMember> existingTeamMember = teamMemberRepository.findByTeamAndUser(team, user);
 
         if (existingTeamMember.isPresent()) {
@@ -31,7 +37,8 @@ public class TeamMemberService {
             if (teamMember.isDeleted()) {
 
                 teamMember.setDeleted(false);
-                return teamMemberRepository.save(teamMember);
+                teamMemberRepository.save(teamMember);
+                return;
             } else {
                 throw new AlreadyExistException("User is already a member of this team!");
             }
@@ -40,7 +47,7 @@ public class TeamMemberService {
                 .team(team)
                 .user(user)
                 .build();
-        return teamMemberRepository.save(teamMember);
+        teamMemberRepository.save(teamMember);
     }
 
     public void removeTeamMember(UUID id) {
@@ -54,9 +61,14 @@ public class TeamMemberService {
                 .orElseThrow(() -> new CustomNotFoundException("Team member not found with id: " + id));
     }
 
-    @EventListener
-    public void deleteAllByTeamId(TeamDeletedEvent event) {
-        List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamIdAndIsDeletedFalse(event.teamId());
+    public void deleteAllByTeamId(UUID teamId) {
+        List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamIdAndIsDeletedFalse(teamId);
+        teamMembers.forEach(teamMember -> teamMember.setDeleted(true));
+        teamMemberRepository.saveAll(teamMembers);
+    }
+
+    public void deleteAllByUserId(UUID userId) {
+        List<TeamMember> teamMembers = teamMemberRepository.findAllByUserIdAndIsDeletedFalse(userId);
         teamMembers.forEach(teamMember -> teamMember.setDeleted(true));
         teamMemberRepository.saveAll(teamMembers);
     }

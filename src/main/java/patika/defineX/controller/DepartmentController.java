@@ -1,5 +1,6 @@
 package patika.defineX.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,12 +32,12 @@ public class DepartmentController {
     }
 
     @PostMapping("/v1")
-    public ResponseEntity<DepartmentResponse> save(@RequestBody DepartmentRequest departmentRequest) {
+    public ResponseEntity<DepartmentResponse> save(@Valid @RequestBody DepartmentRequest departmentRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(departmentService.save(departmentRequest));
     }
 
     @PutMapping("/v1/{id}")
-    public ResponseEntity<DepartmentResponse> update(@PathVariable UUID id, @RequestBody DepartmentRequest departmentRequest) {
+    public ResponseEntity<DepartmentResponse> update(@PathVariable UUID id,@Valid @RequestBody DepartmentRequest departmentRequest) {
         return ResponseEntity.ok(departmentService.update(id, departmentRequest));
     }
 

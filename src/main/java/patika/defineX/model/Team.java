@@ -3,8 +3,6 @@ package patika.defineX.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Entity
 @Getter
 @Setter
@@ -13,13 +11,10 @@ import java.util.List;
 @Builder
 public class Team extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
-
-    @OneToMany
-    private List<TeamMember> members;
 }

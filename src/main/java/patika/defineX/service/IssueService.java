@@ -2,6 +2,7 @@ package patika.defineX.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.IssueRequest;
@@ -10,6 +11,7 @@ import patika.defineX.dto.request.IssueUpdateRequest;
 import patika.defineX.dto.response.IssueResponse;
 import patika.defineX.event.HistoryCreatedEvent;
 import patika.defineX.event.IssueDeletedEvent;
+import patika.defineX.event.ProjectDeletedEvent;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.exception.custom.StatusChangeException;
 import patika.defineX.model.Issue;
@@ -100,6 +102,17 @@ public class IssueService {
         issue.setStatus(IssueStatus.CANCELLED);
         issueRepository.save(issue);
         applicationEventPublisher.publishEvent(new IssueDeletedEvent(id));
+    }
+
+    @EventListener
+    @Transactional
+    protected void deleteAllByProjectId(ProjectDeletedEvent event) {
+        List<Issue> issues = issueRepository.findAllByProjectIdAndIsDeletedFalse(event.id());
+        issues.forEach(issue -> {
+            issue.setDeleted(true);
+            applicationEventPublisher.publishEvent(new IssueDeletedEvent(issue.getId()));
+        });
+        issueRepository.saveAll(issues);
     }
 
     protected Issue findById(UUID id) {

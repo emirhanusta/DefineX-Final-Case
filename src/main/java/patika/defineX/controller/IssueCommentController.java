@@ -1,5 +1,6 @@
 package patika.defineX.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,12 +27,12 @@ public class IssueCommentController {
     }
 
     @PostMapping("/v1")
-    public ResponseEntity<IssueCommentResponse> save(@RequestBody IssueCommentRequest issueCommentRequest) {
+    public ResponseEntity<IssueCommentResponse> save(@Valid @RequestBody IssueCommentRequest issueCommentRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(issueCommentService.create(issueCommentRequest));
     }
 
     @PutMapping("/v1/{id}")
-    public ResponseEntity<IssueCommentResponse> update(@PathVariable UUID id, @RequestBody IssueCommentRequest issueCommentRequest) {
+    public ResponseEntity<IssueCommentResponse> update(@PathVariable UUID id,@Valid @RequestBody IssueCommentRequest issueCommentRequest) {
         return ResponseEntity.ok(issueCommentService.update(id, issueCommentRequest));
     }
 

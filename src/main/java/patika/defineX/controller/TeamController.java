@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import patika.defineX.dto.request.TeamRequest;
+import patika.defineX.dto.response.TeamMemberListResponse;
 import patika.defineX.dto.response.TeamResponse;
 import patika.defineX.service.TeamService;
 
@@ -26,7 +27,7 @@ public class TeamController {
     }
 
     @GetMapping("/v1/{teamId}")
-    public ResponseEntity<TeamResponse> getById(@PathVariable UUID teamId) {
+    public ResponseEntity<TeamMemberListResponse> getById(@PathVariable UUID teamId) {
         return ResponseEntity.ok(teamService.getTeamById(teamId));
     }
 
@@ -36,7 +37,7 @@ public class TeamController {
     }
 
     @PostMapping("/v1/members/{teamId}")
-    public ResponseEntity<TeamResponse> addMember(
+    public ResponseEntity<TeamMemberListResponse> addMember(
             @PathVariable UUID teamId,
             @RequestParam UUID userId) {
         return ResponseEntity.ok(teamService.addTeamMember(teamId, userId));

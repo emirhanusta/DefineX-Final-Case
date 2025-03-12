@@ -1,5 +1,6 @@
 package patika.defineX.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,12 +32,12 @@ public class UserController {
     }
 
     @PostMapping("/v1")
-    public ResponseEntity<UserResponse> save(@RequestBody UserRequest userRequest) {
+    public ResponseEntity<UserResponse> save(@Valid @RequestBody UserRequest userRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(userRequest));
     }
 
     @PutMapping("/v1/{id}")
-    public ResponseEntity<UserResponse> update(@PathVariable UUID id, @RequestBody UserRequest userRequest) {
+    public ResponseEntity<UserResponse> update(@PathVariable UUID id,@Valid @RequestBody UserRequest userRequest) {
         return ResponseEntity.ok(userService.update(id, userRequest));
     }
 

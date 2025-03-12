@@ -12,7 +12,7 @@ import patika.defineX.model.enums.ProjectStatus;
 @AllArgsConstructor
 @Builder
 public class Project extends BaseEntity {
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String title;
 
     @Column(columnDefinition = "TEXT")
