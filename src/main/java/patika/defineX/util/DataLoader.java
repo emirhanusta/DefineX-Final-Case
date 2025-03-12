@@ -79,7 +79,7 @@ public class DataLoader {
         TeamMember teamMember1 = TeamMember.builder().team(team).user(teamLead).build();
         TeamMember teamMember2 = TeamMember.builder().team(team).user(teamMember).build();
         teamMemberRepository.saveAll(List.of(teamMember1,teamMember2));
-
+        team.setMembers(List.of(teamMember1,teamMember2));
 
         teamRepository.save(team);
     }

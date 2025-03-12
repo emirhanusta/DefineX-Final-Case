@@ -35,14 +35,14 @@ public class TeamController {
         return ResponseEntity.status(HttpStatus.CREATED).body(teamService.save(teamRequest));
     }
 
-    @PostMapping("/v1/{teamId}/members")
+    @PostMapping("/v1/members/{teamId}")
     public ResponseEntity<TeamResponse> addMember(
             @PathVariable UUID teamId,
             @RequestParam UUID userId) {
         return ResponseEntity.ok(teamService.addTeamMember(teamId, userId));
     }
 
-    @DeleteMapping("/v1/{teamMemberId}/members")
+    @DeleteMapping("/v1/members/{teamMemberId}")
     public ResponseEntity<Void> removeMember(@PathVariable UUID teamMemberId) {
         teamService.removeTeamMember(teamMemberId);
         return ResponseEntity.noContent().build();
