@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface DepartmentRepository extends JpaRepository<Department, UUID> {
-    List<Department> findAllByIsDeletedFalse();
-    Optional<Department> findByIdAndIsDeletedFalse(UUID id);
+    List<Department> findAllByDeletedAtNull();
+    Optional<Department> findByIdAndDeletedAtNull(UUID id);
+    boolean existsByNameAndDeletedAtNull(String name);
 }

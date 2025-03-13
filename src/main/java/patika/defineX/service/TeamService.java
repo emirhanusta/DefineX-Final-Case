@@ -8,6 +8,7 @@ import patika.defineX.dto.response.TeamMemberListResponse;
 import patika.defineX.dto.response.TeamMemberResponse;
 import patika.defineX.dto.response.TeamResponse;
 import patika.defineX.event.ProjectDeletedEvent;
+import patika.defineX.exception.custom.CustomAlreadyExistException;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.model.Project;
 import patika.defineX.model.Team;
@@ -36,7 +37,7 @@ public class TeamService {
 
     public List<TeamResponse> getAllTeamsByProjectId(UUID projectId) {
         projectService.findById(projectId);
-        return teamRepository.findAllByProjectIdAndIsDeletedFalse(projectId)
+        return teamRepository.findAllByProjectIdAndDeletedAtNull(projectId)
                 .stream()
                 .map(TeamResponse::from)
                 .toList();
@@ -53,6 +54,7 @@ public class TeamService {
     }
 
     public TeamResponse save (TeamRequest teamRequest) {
+        existsByName(teamRequest.name());
         Project project = projectService.findById(teamRequest.projectId());
         Team team = Team.builder()
                 .name(teamRequest.name())
@@ -63,6 +65,10 @@ public class TeamService {
 
     public TeamResponse update(UUID id, TeamRequest teamRequest) {
         Team team = findById(id);
+        if (!team.getName().equals(teamRequest.name().toUpperCase())) {
+            existsByName(teamRequest.name().toUpperCase());
+        }
+
         if (!team.getProject().getId().equals(teamRequest.projectId())) {
             Project project = projectService.findById(teamRequest.projectId());
             team.setProject(project);
@@ -73,7 +79,7 @@ public class TeamService {
 
     public void delete(UUID id) {
         Team team = findById(id);
-        team.setDeleted(true);
+        team.softDelete();
         teamRepository.save(team);
         teamMemberService.deleteAllByTeamId(id);
     }
@@ -101,17 +107,22 @@ public class TeamService {
     @EventListener
     @Transactional
     public void deleteTeamsByProjectId(ProjectDeletedEvent event) {
-        List<Team> teams = teamRepository.findAllByProjectIdAndIsDeletedFalse(event.id());
+        List<Team> teams = teamRepository.findAllByProjectIdAndDeletedAtNull(event.id());
         teams.forEach(team -> {
-            team.setDeleted(true);
+            team.softDelete();
             teamMemberService.deleteAllByTeamId(team.getId());
         });
         teamRepository.saveAll(teams);
     }
 
-
     private Team findById(UUID id) {
-        return teamRepository.findByIdAndIsDeletedFalse(id)
+        return teamRepository.findByIdAndDeletedAtNull(id)
                 .orElseThrow(() -> new CustomNotFoundException("Team not found with id: " + id));
+    }
+
+    private void existsByName(String name) {
+        if (teamRepository.existsByNameAndDeletedAtNull(name)) {
+            throw new CustomAlreadyExistException("Team already exist with name: " + name);
+        }
     }
 }

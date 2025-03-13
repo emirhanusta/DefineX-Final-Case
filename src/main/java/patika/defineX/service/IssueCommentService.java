@@ -7,6 +7,7 @@ import patika.defineX.dto.request.IssueCommentRequest;
 import patika.defineX.dto.response.IssueCommentResponse;
 import patika.defineX.event.IssueDeletedEvent;
 import patika.defineX.exception.custom.CustomNotFoundException;
+import patika.defineX.model.BaseEntity;
 import patika.defineX.model.Issue;
 import patika.defineX.model.IssueComment;
 import patika.defineX.model.User;
@@ -30,7 +31,7 @@ public class IssueCommentService {
 
     public List<IssueCommentResponse> getIssueComments(UUID issueId) {
         issueService.findById(issueId);
-        return issueCommentRepository.findAllByIssueIdAndIsDeletedFalse(issueId).stream()
+        return issueCommentRepository.findAllByIssueIdAndDeletedAtNull(issueId).stream()
                 .map(IssueCommentResponse::from)
                 .toList();
     }
@@ -54,20 +55,20 @@ public class IssueCommentService {
 
     public void delete (UUID id) {
         IssueComment issueComment = findById(id);
-        issueComment.setDeleted(true);
+        issueComment.softDelete();
         issueCommentRepository.save(issueComment);
     }
 
     @EventListener
     @Transactional
     public void deleteIssueComments(IssueDeletedEvent event) {
-        List<IssueComment> issueComments = issueCommentRepository.findAllByIssueIdAndIsDeletedFalse(event.issueId());
-        issueComments.forEach(issueComment -> issueComment.setDeleted(true));
+        List<IssueComment> issueComments = issueCommentRepository.findAllByIssueIdAndDeletedAtNull(event.issueId());
+        issueComments.forEach(BaseEntity::softDelete);
         issueCommentRepository.saveAll(issueComments);
     }
 
     private IssueComment findById(UUID id) {
-        return issueCommentRepository.findByIdAndIsDeletedFalse(id)
+        return issueCommentRepository.findByIdAndDeletedAtNull(id)
                 .orElseThrow(() -> new CustomNotFoundException("Issue comment not found with id: " + id));
     }
 }

@@ -32,7 +32,7 @@ public class IssueService {
 
     public List<IssueResponse> listAllByProjectId(UUID projectId) {
         projectService.findById(projectId);
-        return issueRepository.findAllByProjectIdAndIsDeletedFalse(projectId).stream()
+        return issueRepository.findAllByProjectIdAndDeletedAtNull(projectId).stream()
                 .map(IssueResponse::from)
                 .toList();
     }
@@ -98,7 +98,7 @@ public class IssueService {
     @Transactional
     public void delete(UUID id) {
         Issue issue = findById(id);
-        issue.setDeleted(true);
+        issue.softDelete();
         issue.setStatus(IssueStatus.CANCELLED);
         issueRepository.save(issue);
         applicationEventPublisher.publishEvent(new IssueDeletedEvent(id));
@@ -107,16 +107,16 @@ public class IssueService {
     @EventListener
     @Transactional
     protected void deleteAllByProjectId(ProjectDeletedEvent event) {
-        List<Issue> issues = issueRepository.findAllByProjectIdAndIsDeletedFalse(event.id());
+        List<Issue> issues = issueRepository.findAllByProjectIdAndDeletedAtNull(event.id());
         issues.forEach(issue -> {
-            issue.setDeleted(true);
+            issue.softDelete();
             applicationEventPublisher.publishEvent(new IssueDeletedEvent(issue.getId()));
         });
         issueRepository.saveAll(issues);
     }
 
     protected Issue findById(UUID id) {
-        return issueRepository.findByIdAndIsDeletedFalse(id)
+        return issueRepository.findByIdAndDeletedAtNull(id)
                 .orElseThrow(() -> new CustomNotFoundException("Issue not found with id: " + id));
     }
 

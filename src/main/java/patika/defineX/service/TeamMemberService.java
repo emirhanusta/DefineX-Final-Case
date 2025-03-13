@@ -2,8 +2,9 @@ package patika.defineX.service;
 
 import org.springframework.stereotype.Service;
 import patika.defineX.dto.response.TeamMemberResponse;
-import patika.defineX.exception.custom.AlreadyExistException;
+import patika.defineX.exception.custom.CustomAlreadyExistException;
 import patika.defineX.exception.custom.CustomNotFoundException;
+import patika.defineX.model.BaseEntity;
 import patika.defineX.model.Team;
 import patika.defineX.model.TeamMember;
 import patika.defineX.model.User;
@@ -23,7 +24,7 @@ public class TeamMemberService {
     }
 
     public List<TeamMemberResponse> getAllByTeamId(UUID teamId) {
-        return teamMemberRepository.findAllByTeamIdAndIsDeletedFalse(teamId)
+        return teamMemberRepository.findAllByTeamIdAndDeletedAtNull(teamId)
                 .stream()
                 .map(TeamMemberResponse::from)
                 .toList();
@@ -36,11 +37,11 @@ public class TeamMemberService {
             TeamMember teamMember = existingTeamMember.get();
             if (teamMember.isDeleted()) {
 
-                teamMember.setDeleted(false);
+                teamMember.restore();
                 teamMemberRepository.save(teamMember);
                 return;
             } else {
-                throw new AlreadyExistException("User is already a member of this team!");
+                throw new CustomAlreadyExistException("User is already a member of this team!");
             }
         }
         TeamMember teamMember = TeamMember.builder()
@@ -52,24 +53,24 @@ public class TeamMemberService {
 
     public void removeTeamMember(UUID id) {
         TeamMember teamMember = findById(id);
-        teamMember.setDeleted(true);
+        teamMember.softDelete();
         teamMemberRepository.save(teamMember);
     }
 
     protected TeamMember findById(UUID id) {
-        return teamMemberRepository.findByIdAndIsDeletedFalse(id)
+        return teamMemberRepository.findByIdAndDeletedAtNull(id)
                 .orElseThrow(() -> new CustomNotFoundException("Team member not found with id: " + id));
     }
 
     public void deleteAllByTeamId(UUID teamId) {
-        List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamIdAndIsDeletedFalse(teamId);
-        teamMembers.forEach(teamMember -> teamMember.setDeleted(true));
+        List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamIdAndDeletedAtNull(teamId);
+        teamMembers.forEach(BaseEntity::softDelete);
         teamMemberRepository.saveAll(teamMembers);
     }
 
     public void deleteAllByUserId(UUID userId) {
-        List<TeamMember> teamMembers = teamMemberRepository.findAllByUserIdAndIsDeletedFalse(userId);
-        teamMembers.forEach(teamMember -> teamMember.setDeleted(true));
+        List<TeamMember> teamMembers = teamMemberRepository.findAllByUserIdAndDeletedAtNull(userId);
+        teamMembers.forEach(BaseEntity::softDelete);
         teamMemberRepository.saveAll(teamMembers);
     }
 }

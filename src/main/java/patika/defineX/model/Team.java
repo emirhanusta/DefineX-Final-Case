@@ -9,6 +9,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"name", "deleted_at"})
+})
 public class Team extends BaseEntity {
 
     @Column(nullable = false, unique = true)

@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.response.IssueHistoryResponse;
 import patika.defineX.event.HistoryCreatedEvent;
 import patika.defineX.event.IssueDeletedEvent;
+import patika.defineX.model.BaseEntity;
 import patika.defineX.model.IssueHistory;
 import patika.defineX.model.User;
 import patika.defineX.repository.IssueHistoryRepository;
@@ -51,12 +52,12 @@ public class IssueHistoryService {
     @Transactional
     public void deleteIssueHistories(IssueDeletedEvent event) {
         List<IssueHistory> issueHistories = findAllByIssueIdAndIsDeletedFalse(event.issueId());
-        issueHistories.forEach(issueHistory -> issueHistory.setDeleted(true));
+        issueHistories.forEach(BaseEntity::softDelete);
         issueHistoryRepository.saveAll(issueHistories);
     }
 
     private List<IssueHistory> findAllByIssueIdAndIsDeletedFalse(UUID issueId) {
-        return issueHistoryRepository.findAllByIssueIdAndIsDeletedFalse(issueId);
+        return issueHistoryRepository.findAllByIssueIdAndDeletedAtNull(issueId);
     }
 
 }

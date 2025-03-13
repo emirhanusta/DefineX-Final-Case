@@ -7,6 +7,7 @@ import patika.defineX.dto.request.IssueAttachmentRequest;
 import patika.defineX.dto.response.IssueAttachmentResponse;
 import patika.defineX.event.IssueDeletedEvent;
 import patika.defineX.exception.custom.CustomNotFoundException;
+import patika.defineX.model.BaseEntity;
 import patika.defineX.model.Issue;
 import patika.defineX.model.IssueAttachment;
 import patika.defineX.repository.IssueAttachmentRepository;
@@ -40,7 +41,7 @@ public class IssueAttachmentService {
 
     public void delete (UUID id) {
         IssueAttachment issueAttachment = findById(id);
-        issueAttachment.setDeleted(true);
+        issueAttachment.softDelete();
         issueAttachmentRepository.save(issueAttachment);
     }
 
@@ -48,16 +49,16 @@ public class IssueAttachmentService {
     @Transactional
     public void deleteIssueAttachments(IssueDeletedEvent event) {
         List<IssueAttachment> issueAttachments = findByIssueIdAndIsDeletedFalse(event.issueId());
-        issueAttachments.forEach(issueAttachment -> issueAttachment.setDeleted(true));
+        issueAttachments.forEach(BaseEntity::softDelete);
         issueAttachmentRepository.saveAll(issueAttachments);
     }
 
     private List<IssueAttachment> findByIssueIdAndIsDeletedFalse(UUID issueId) {
-        return issueAttachmentRepository.findByIssueIdAndIsDeletedFalse(issueId);
+        return issueAttachmentRepository.findByIssueIdAndDeletedAtNull(issueId);
     }
 
     private IssueAttachment findById(UUID id) {
-        return issueAttachmentRepository.findByIdAndIsDeletedFalse(id)
+        return issueAttachmentRepository.findByIdAndDeletedAtNull(id)
                 .orElseThrow(() -> new CustomNotFoundException("Issue attachment not found with id: " + id));
     }
 }

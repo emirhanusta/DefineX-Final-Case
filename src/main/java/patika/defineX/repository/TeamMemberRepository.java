@@ -10,11 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
-    List<TeamMember> findAllByTeamIdAndIsDeletedFalse(UUID id);
-
-    Optional<TeamMember> findByIdAndIsDeletedFalse(UUID id);
-
+    List<TeamMember> findAllByTeamIdAndDeletedAtNull(UUID id);
+    Optional<TeamMember> findByIdAndDeletedAtNull(UUID id);
     Optional<TeamMember> findByTeamAndUser(Team team, User user);
-
-    List<TeamMember> findAllByUserIdAndIsDeletedFalse(UUID userId);
+    List<TeamMember> findAllByUserIdAndDeletedAtNull(UUID userId);
 }

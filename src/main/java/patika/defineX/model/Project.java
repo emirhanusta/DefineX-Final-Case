@@ -11,8 +11,12 @@ import patika.defineX.model.enums.ProjectStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"title", "deleted_at"})
+})
 public class Project extends BaseEntity {
-    @Column(nullable = false, unique = true)
+
+    @Column(nullable = false)
     private String title;
 
     @Column(columnDefinition = "TEXT")

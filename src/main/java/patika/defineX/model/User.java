@@ -5,12 +5,14 @@ import lombok.*;
 import patika.defineX.model.enums.Role;
 
 @Entity
-@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"email", "deleted_at"})
+})
 public class User extends BaseEntity {
 
     @Column(nullable = false)

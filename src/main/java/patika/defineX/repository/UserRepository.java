@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
-    List<User> findAllByIsDeletedFalse();
-
-    Optional<User> findByIdAndIsDeletedFalse(UUID id);
+    List<User> findAllByDeletedAtNull();
+    Optional<User> findByIdAndDeletedAtNull(UUID id);
+    boolean existsByEmailAndDeletedAtNull(String email);
 }

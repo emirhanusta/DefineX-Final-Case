@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface IssueHistoryRepository extends JpaRepository<IssueHistory, UUID> {
-    List<IssueHistory> findAllByIssueIdAndIsDeletedFalse(UUID uuid);
+    List<IssueHistory> findAllByIssueIdAndDeletedAtNull(UUID uuid);
 }

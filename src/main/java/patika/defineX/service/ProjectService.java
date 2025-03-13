@@ -8,6 +8,7 @@ import patika.defineX.dto.request.ProjectRequest;
 import patika.defineX.dto.response.ProjectResponse;
 import patika.defineX.event.DepartmentDeletedEvent;
 import patika.defineX.event.ProjectDeletedEvent;
+import patika.defineX.exception.custom.CustomAlreadyExistException;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.exception.custom.StatusChangeException;
 import patika.defineX.model.Project;
@@ -33,7 +34,7 @@ public class ProjectService {
 
     public List<ProjectResponse> listAllByDepartmentId(UUID departmentId) {
         departmentService.findById(departmentId);
-        return projectRepository.findAllByDepartmentIdAndIsDeletedFalse(departmentId).stream()
+        return projectRepository.findAllByDepartmentIdAndDeletedAtNull(departmentId).stream()
                 .map(ProjectResponse::from)
                 .toList();
     }
@@ -43,6 +44,7 @@ public class ProjectService {
     }
 
     public ProjectResponse save(ProjectRequest projectRequest) {
+        existsByTitle(projectRequest.title().toUpperCase());
         Project project = ProjectRequest.from(projectRequest);
         project.setDepartment(departmentService.findById(projectRequest.departmentId()));
         return ProjectResponse.from(projectRepository.save(project));
@@ -50,6 +52,9 @@ public class ProjectService {
 
     public ProjectResponse update(UUID id, ProjectRequest projectRequest) {
         Project project = findById(id);
+        if (!project.getTitle().equals(projectRequest.title())) {
+            existsByTitle(projectRequest.title().toUpperCase());
+        }
         project.setTitle(projectRequest.title());
         project.setDescription(projectRequest.description());
         project.setStatus(projectRequest.status());
@@ -59,7 +64,7 @@ public class ProjectService {
 
     public void delete(UUID id) {
         Project project = findById(id);
-        project.setDeleted(true);
+        project.softDelete();
         projectRepository.save(project);
         applicationEventPublisher.publishEvent(new ProjectDeletedEvent(project.getId()));
     }
@@ -76,17 +81,22 @@ public class ProjectService {
     @EventListener
     @Transactional
     protected void deleteAllByDepartmentId(DepartmentDeletedEvent event) {
-        List<Project> projects = projectRepository.findAllByDepartmentIdAndIsDeletedFalse(event.departmentId());
+        List<Project> projects = projectRepository.findAllByDepartmentIdAndDeletedAtNull(event.departmentId());
         projects.forEach(project -> {
-            project.setDeleted(true);
+            project.softDelete();
             applicationEventPublisher.publishEvent(new ProjectDeletedEvent(project.getId()));
         });
         projectRepository.saveAll(projects);
     }
 
-
     protected Project findById(UUID id) {
-        return projectRepository.findByIdAndIsDeletedFalse(id)
+        return projectRepository.findByIdAndDeletedAtNull(id)
                 .orElseThrow(() -> new CustomNotFoundException("Project not found with id: " + id));
+    }
+
+    private void existsByTitle(String name) {
+        if (projectRepository.existsByTitleAndDeletedAtNull(name)) {
+            throw new CustomAlreadyExistException("Project already exists with name: " + name);
+        }
     }
 }

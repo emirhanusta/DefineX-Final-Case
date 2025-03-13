@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.UserRequest;
 import patika.defineX.dto.response.UserResponse;
+import patika.defineX.exception.custom.CustomAlreadyExistException;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.model.enums.Role;
 import patika.defineX.model.User;
@@ -24,7 +25,7 @@ public class UserService {
     }
 
     public List<UserResponse> listAll() {
-        return userRepository.findAllByIsDeletedFalse().stream()
+        return userRepository.findAllByDeletedAtNull().stream()
                 .map(UserResponse::from)
                 .toList();
     }
@@ -35,6 +36,7 @@ public class UserService {
     }
 
     public UserResponse save(UserRequest userRequest) {
+        existsByEmail(userRequest.email());
         User user = UserRequest.from(userRequest);
         user.setRole(Role.TEAM_MEMBER);
         return UserResponse.from(userRepository.save(user));
@@ -42,6 +44,9 @@ public class UserService {
 
     public UserResponse update(UUID id, UserRequest userRequest) {
         User user = findById(id);
+        if (!user.getEmail().equals(userRequest.email())) {
+            existsByEmail(userRequest.email());
+        }
         user.setName(userRequest.name());
         user.setEmail(userRequest.email());
         user.setPassword(userRequest.password());
@@ -51,13 +56,19 @@ public class UserService {
     @Transactional
     public void delete(UUID id) {
         User user = findById(id);
-        user.setDeleted(true);
+        user.softDelete();
         userRepository.save(user);
         teamMemberService.deleteAllByUserId(id);
     }
 
     protected User findById(UUID id) {
-        return userRepository.findByIdAndIsDeletedFalse(id).orElseThrow(
+        return userRepository.findByIdAndDeletedAtNull(id).orElseThrow(
                 () -> new CustomNotFoundException("User not found with id: " + id));
+    }
+
+    private void existsByEmail(String email) {
+        if (userRepository.existsByEmailAndDeletedAtNull(email)) {
+            throw new CustomAlreadyExistException("User already exist with email: " + email);
+        }
     }
 }

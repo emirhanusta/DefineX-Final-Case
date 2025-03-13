@@ -18,7 +18,7 @@ public record ProjectRequest(
 ) {
     public static Project from (ProjectRequest projectRequest) {
         return Project.builder()
-                .title(projectRequest.title())
+                .title(projectRequest.title().toUpperCase())
                 .description(projectRequest.description())
                 .status(projectRequest.status())
                 .build();

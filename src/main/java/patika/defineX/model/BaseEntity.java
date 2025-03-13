@@ -16,16 +16,29 @@ import java.util.UUID;
 @Getter
 @MappedSuperclass
 public abstract class BaseEntity {
+
     @Id
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
-    private boolean isDeleted = false;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt = null;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void restore() {
+        this.deletedAt = null;
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
+    }
 }
