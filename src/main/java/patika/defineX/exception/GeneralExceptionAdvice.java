@@ -1,10 +1,14 @@
 package patika.defineX.exception;
 
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -53,7 +57,38 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(CustomAlreadyExistException.class)
     public ResponseEntity<ErrorResponse> handleAlreadyExistException(CustomAlreadyExistException ex, HttpServletRequest req) {
         return new ResponseEntity<>(new ErrorResponse(
-                ex.getMessage(), HttpStatus.BAD_REQUEST, System.currentTimeMillis(), req.getRequestURI()),
-                HttpStatus.BAD_REQUEST);
+                ex.getMessage(), HttpStatus.CONFLICT, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.UNAUTHORIZED, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.FORBIDDEN, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.FORBIDDEN
+        );
+    }
+
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    public ResponseEntity<Object> handleInsufficientAuthenticationException(InsufficientAuthenticationException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.UNAUTHORIZED, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.UNAUTHORIZED
+        );
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<Object> handleJwtException(SignatureException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.UNAUTHORIZED, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.UNAUTHORIZED
+        );
     }
 }

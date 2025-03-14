@@ -3,7 +3,6 @@ package patika.defineX.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import patika.defineX.model.User;
 
 public record UserRequest(
     @NotBlank
@@ -16,11 +15,4 @@ public record UserRequest(
     @Size(min = 6, max = 50)
     String password
 ) {
-    public static User from (UserRequest user) {
-        return User.builder()
-                .name(user.name())
-                .email(user.email())
-                .password(user.password())
-                .build();
-    }
 }

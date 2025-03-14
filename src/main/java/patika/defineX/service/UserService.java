@@ -35,9 +35,8 @@ public class UserService {
         return UserResponse.from(user);
     }
 
-    public UserResponse save(UserRequest userRequest) {
-        existsByEmail(userRequest.email());
-        User user = UserRequest.from(userRequest);
+    public UserResponse save(User user) {
+        existsByEmail(user.getEmail());
         user.setRole(Role.TEAM_MEMBER);
         return UserResponse.from(userRepository.save(user));
     }
@@ -64,6 +63,11 @@ public class UserService {
     protected User findById(UUID id) {
         return userRepository.findByIdAndDeletedAtNull(id).orElseThrow(
                 () -> new CustomNotFoundException("User not found with id: " + id));
+    }
+
+    protected User findByEmail(String email) {
+        return userRepository.findByEmailAndDeletedAtNull(email).orElseThrow(
+                () -> new CustomNotFoundException("User not found with email: " + email));
     }
 
     private void existsByEmail(String email) {

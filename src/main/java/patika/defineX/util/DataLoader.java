@@ -3,6 +3,7 @@ package patika.defineX.util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import patika.defineX.model.*;
 import patika.defineX.model.enums.*;
@@ -24,12 +25,13 @@ public class DataLoader {
     private final IssueAttachmentRepository issueAttachmentRepository;
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @EventListener(ApplicationReadyEvent.class)
     public void loadData() {
         //user
-        User teamLead = User.builder().name("teamLead").email("teamLead@mail.com").password("pass").role(Role.TEAM_LEADER).build();
-        User teamMember = User.builder().name("teamMember").email("teamMember@mail.com").password("pass").role(Role.TEAM_MEMBER).build();
+        User teamLead = User.builder().name("teamLead").email("teamLead@mail.com").password(passwordEncoder.encode("passs")).role(Role.TEAM_LEADER).build();
+        User teamMember = User.builder().name("teamMember").email("teamMember@mail.com").password(passwordEncoder.encode("pass")).role(Role.TEAM_MEMBER).build();
         userRepository.saveAll(List.of(teamLead,teamMember));
 
         //department
@@ -71,9 +73,8 @@ public class DataLoader {
         issueAttachmentRepository.saveAll(List.of(issueAttachment, issueAttachment2));
 
         //team
-        Team team = Team.builder().name("Team").project(projectA).build();
+        Team team = Team.builder().name("TEAM").project(projectA).build();
         teamRepository.save(team);
-
 
         //teamMember
         TeamMember teamMember1 = TeamMember.builder().team(team).user(teamLead).build();

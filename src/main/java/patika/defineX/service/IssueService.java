@@ -107,7 +107,7 @@ public class IssueService {
     @EventListener
     @Transactional
     protected void deleteAllByProjectId(ProjectDeletedEvent event) {
-        List<Issue> issues = issueRepository.findAllByProjectIdAndDeletedAtNull(event.id());
+        List<Issue> issues = issueRepository.findAllByProjectIdAndDeletedAtNull(event.projectId());
         issues.forEach(issue -> {
             issue.softDelete();
             applicationEventPublisher.publishEvent(new IssueDeletedEvent(issue.getId()));

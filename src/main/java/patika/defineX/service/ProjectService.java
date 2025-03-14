@@ -55,7 +55,7 @@ public class ProjectService {
         if (!project.getTitle().equals(projectRequest.title())) {
             existsByTitle(projectRequest.title().toUpperCase());
         }
-        project.setTitle(projectRequest.title());
+        project.setTitle(projectRequest.title().toUpperCase());
         project.setDescription(projectRequest.description());
         project.setStatus(projectRequest.status());
         project.setDepartment(departmentService.findById(projectRequest.departmentId()));

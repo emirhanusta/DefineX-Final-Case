@@ -1,7 +1,6 @@
 package patika.defineX.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import patika.defineX.dto.request.UserRequest;
@@ -29,11 +28,6 @@ public class UserController {
     @GetMapping("/v1/{id}")
     public ResponseEntity<UserResponse> getUserById (@PathVariable UUID id) {
         return ResponseEntity.ok(userService.getById(id));
-    }
-
-    @PostMapping("/v1")
-    public ResponseEntity<UserResponse> save(@Valid @RequestBody UserRequest userRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(userRequest));
     }
 
     @PutMapping("/v1/{id}")
