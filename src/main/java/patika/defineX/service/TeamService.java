@@ -54,10 +54,10 @@ public class TeamService {
     }
 
     public TeamResponse save (TeamRequest teamRequest) {
-        existsByName(teamRequest.name());
+        existsByName(teamRequest.name().toUpperCase());
         Project project = projectService.findById(teamRequest.projectId());
         Team team = Team.builder()
-                .name(teamRequest.name())
+                .name(teamRequest.name().toUpperCase())
                 .project(project)
                 .build();
         return TeamResponse.from(teamRepository.save(team));
@@ -65,8 +65,9 @@ public class TeamService {
 
     public TeamResponse update(UUID id, TeamRequest teamRequest) {
         Team team = findById(id);
-        if (!team.getName().equals(teamRequest.name().toUpperCase())) {
-            existsByName(teamRequest.name().toUpperCase());
+        String name = teamRequest.name().toUpperCase();
+        if (!team.getName().equals(name)) {
+            existsByName(name);
         }
 
         if (!team.getProject().getId().equals(teamRequest.projectId())) {
@@ -107,7 +108,7 @@ public class TeamService {
     @EventListener
     @Transactional
     public void deleteTeamsByProjectId(ProjectDeletedEvent event) {
-        List<Team> teams = teamRepository.findAllByProjectIdAndDeletedAtNull(event.id());
+        List<Team> teams = teamRepository.findAllByProjectIdAndDeletedAtNull(event.projectId());
         teams.forEach(team -> {
             team.softDelete();
             teamMemberService.deleteAllByTeamId(team.getId());
