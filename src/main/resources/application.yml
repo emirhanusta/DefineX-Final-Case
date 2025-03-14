@@ -2,12 +2,14 @@ spring:
   application:
     name: final-project
   datasource:
-    driverClassName: org.h2.Driver
-    url: jdbc:h2:mem:final-projectDB
+    username: postgres
+    password: postgres
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/final-project
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: create
-  h2:
-    console:
-      enabled: true
+    show-sql: true
+    database: postgresql
+
