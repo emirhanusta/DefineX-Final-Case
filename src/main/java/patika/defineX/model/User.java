@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import patika.defineX.model.enums.Role;
 
+import java.util.Set;
+
 @Entity
 @Getter
 @Setter
@@ -24,7 +26,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
+    @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
+    @JoinTable(name = "authorities", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+    private Set<Role> authorities;
 }

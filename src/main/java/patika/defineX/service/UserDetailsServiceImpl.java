@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import patika.defineX.model.User;
 
-import java.util.stream.Stream;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -22,8 +21,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userService.findByEmail(email);
 
-        var roles = Stream.of(user.getRole())
-                .map(role -> new SimpleGrantedAuthority(role.name()))
+        var roles = user.getAuthorities().stream()
+                .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
                 .toList();
 
         return new org.springframework.security.core.userdetails.User(

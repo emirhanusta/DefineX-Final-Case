@@ -11,6 +11,7 @@ import patika.defineX.model.User;
 import patika.defineX.repository.UserRepository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -37,7 +38,7 @@ public class UserService {
 
     public UserResponse save(User user) {
         existsByEmail(user.getEmail());
-        user.setRole(Role.TEAM_MEMBER);
+        user.setAuthorities(Set.of(Role.TEAM_MEMBER));
         return UserResponse.from(userRepository.save(user));
     }
 
@@ -49,6 +50,27 @@ public class UserService {
         user.setName(userRequest.name());
         user.setEmail(userRequest.email());
         user.setPassword(userRequest.password());
+        return UserResponse.from(userRepository.save(user));
+    }
+
+    public UserResponse addRole(UUID id, Role role) {
+        User user = findById(id);
+        if (user.getAuthorities().contains(role)) {
+            return UserResponse.from(user);
+        }
+        user.getAuthorities().add(role);
+        return UserResponse.from(userRepository.save(user));
+    }
+
+    public UserResponse removeRole(UUID id, Role role) {
+        User user = findById(id);
+        if (role == Role.TEAM_MEMBER) {
+            return UserResponse.from(user);
+        }
+        if (!user.getAuthorities().contains(role)) {
+            return UserResponse.from(user);
+        }
+        user.getAuthorities().remove(role);
         return UserResponse.from(userRepository.save(user));
     }
 

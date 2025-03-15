@@ -54,7 +54,9 @@ public class IssueService {
     public IssueResponse update(UUID id, IssueUpdateRequest issueUpdateRequest) {
         Issue issue = findById(id);
 
-        if (issueUpdateRequest.assigneeId() != null) {
+        if (issueUpdateRequest.assigneeId() == null) {
+            issue.setAssignee(null);
+        } else {
             issue.setAssignee(userService.findById(issueUpdateRequest.assigneeId()));
         }
 
@@ -86,12 +88,6 @@ public class IssueService {
         }
         applicationEventPublisher.publishEvent(new HistoryCreatedEvent(issue, request));
         issue.setStatus(request.status());
-        return IssueResponse.from(issueRepository.save(issue));
-    }
-
-    public IssueResponse unAssign(UUID id) {
-        Issue issue = findById(id);
-        issue.setAssignee(null);
         return IssueResponse.from(issueRepository.save(issue));
     }
 

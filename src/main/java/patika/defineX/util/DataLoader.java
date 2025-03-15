@@ -11,6 +11,7 @@ import patika.defineX.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -30,9 +31,13 @@ public class DataLoader {
     @EventListener(ApplicationReadyEvent.class)
     public void loadData() {
         //user
-        User teamLead = User.builder().name("teamLead").email("teamLead@mail.com").password(passwordEncoder.encode("passs")).role(Role.TEAM_LEADER).build();
-        User teamMember = User.builder().name("teamMember").email("teamMember@mail.com").password(passwordEncoder.encode("pass")).role(Role.TEAM_MEMBER).build();
-        userRepository.saveAll(List.of(teamLead,teamMember));
+        User teamLead = User.builder().name("teamLead").email("teamLead@mail.com")
+                .password(passwordEncoder.encode("passss"))
+                .authorities(Set.of(Role.TEAM_MEMBER, Role.TEAM_LEADER)).build();
+        User projectManager = User.builder().name("teamMember").email("projectManager@mail.com")
+                .password(passwordEncoder.encode("passss"))
+                .authorities(Set.of(Role.PROJECT_MANAGER)).build();
+        userRepository.saveAll(List.of(teamLead,projectManager));
 
         //department
         Department itDepartment = Department.builder().name("IT").build();
@@ -40,31 +45,33 @@ public class DataLoader {
         departmentRepository.saveAll(List.of(itDepartment,hrDepartment));
 
         //project
-        Project projectA = Project.builder().department(itDepartment).title("A").description("Description A").status(ProjectStatus.IN_PROGRESS).build();
-        Project projectB = Project.builder().department(hrDepartment).title("B").description("Description B").status(ProjectStatus.IN_PROGRESS).build();
+        Project projectA = Project.builder().department(itDepartment).title("A").description("Description A")
+                .status(ProjectStatus.IN_PROGRESS).build();
+        Project projectB = Project.builder().department(hrDepartment).title("B").description("Description B")
+                .status(ProjectStatus.IN_PROGRESS).build();
         projectRepository.saveAll(List.of(projectA,projectB));
 
         //issue
-        Issue task = Issue.builder().project(projectA).assignee(teamMember).reporter(teamLead).type(IssueType.TASK)
+        Issue task = Issue.builder().project(projectA).assignee(projectManager).reporter(teamLead).type(IssueType.TASK)
                 .title("Task").description("Description").status(IssueStatus.IN_PROGRESS)
                 .userStory("User Story").acceptanceCriteria("Acceptance Criteria")
                 .priority(PriorityLevel.HIGH).dueDate(LocalDateTime.now().plusDays(20)).build();
-        Issue bug = Issue.builder().project(projectB).assignee(teamMember).reporter(teamLead).type(IssueType.BUG)
+        Issue bug = Issue.builder().project(projectB).assignee(projectManager).reporter(teamLead).type(IssueType.BUG)
                 .title("Bug").description("Description").status(IssueStatus.IN_PROGRESS)
                 .userStory("User Story").acceptanceCriteria("Acceptance Criteria")
                 .priority(PriorityLevel.HIGH).dueDate(LocalDateTime.now().plusDays(20)).build();
         issueRepository.saveAll(List.of(task,bug));
 
         //history
-        IssueHistory issueHistory = IssueHistory.builder().issue(task).previousStatus(IssueStatus.IN_PROGRESS).newStatus(IssueStatus.COMPLETED)
-                .changedBy(teamLead).reason("Reason").build();
-        IssueHistory issueHistory2 = IssueHistory.builder().issue(bug).previousStatus(IssueStatus.IN_ANALYSIS).newStatus(IssueStatus.IN_PROGRESS)
-                .changedBy(teamMember).reason("Reason").build();
+        IssueHistory issueHistory = IssueHistory.builder().issue(task).previousStatus(IssueStatus.IN_PROGRESS)
+                .newStatus(IssueStatus.COMPLETED).changedBy(teamLead).reason("Reason").build();
+        IssueHistory issueHistory2 = IssueHistory.builder().issue(bug).previousStatus(IssueStatus.IN_ANALYSIS)
+                .newStatus(IssueStatus.IN_PROGRESS).changedBy(projectManager).reason("Reason").build();
         issueHistoryRepository.saveAll(List.of(issueHistory, issueHistory2));
 
         //comment
         IssueComment issueComment = IssueComment.builder().issue(task).user(teamLead).comment("Comment").build();
-        IssueComment issueComment2 = IssueComment.builder().issue(bug).user(teamMember).comment("Comment2").build();
+        IssueComment issueComment2 = IssueComment.builder().issue(bug).user(projectManager).comment("Comment2").build();
         issueCommentRepository.saveAll(List.of(issueComment, issueComment2));
 
         //attachment
@@ -78,7 +85,7 @@ public class DataLoader {
 
         //teamMember
         TeamMember teamMember1 = TeamMember.builder().team(team).user(teamLead).build();
-        TeamMember teamMember2 = TeamMember.builder().team(team).user(teamMember).build();
+        TeamMember teamMember2 = TeamMember.builder().team(team).user(projectManager).build();
         teamMemberRepository.saveAll(List.of(teamMember1,teamMember2));
 
     }
