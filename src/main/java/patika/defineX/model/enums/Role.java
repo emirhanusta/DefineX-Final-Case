@@ -1,7 +1,22 @@
 package patika.defineX.model.enums;
 
-public enum Role {
-    TEAM_MEMBER,
-    TEAM_LEADER,
-    PROJECT_MANAGER
+import lombok.Getter;
+import org.springframework.security.core.GrantedAuthority;
+
+@Getter
+public enum Role implements GrantedAuthority {
+    PROJECT_MANAGER("Project Manager"),
+    TEAM_LEADER("Team Leader"),
+    TEAM_MEMBER("Team Member");
+
+    private final String displayName;
+
+    Role(String displayName) {
+        this.displayName = displayName;
+    }
+
+    @Override
+    public String getAuthority() {
+        return "ROLE_" + name();
+    }
 }

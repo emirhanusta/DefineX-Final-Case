@@ -1,8 +1,18 @@
 package patika.defineX.model.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum ProjectStatus {
-    IN_PROGRESS,
-    ON_HOLD,
-    CANCELLED,
-    COMPLETED
+    IN_PROGRESS("In Progress"),
+    ON_HOLD("On Hold"),
+    CANCELLED("Cancelled"),
+    COMPLETED("Completed"),
+    ARCHIVED("Archived");
+
+    private final String displayName;
+
+    ProjectStatus(String displayName) {
+        this.displayName = displayName;
+    }
 }

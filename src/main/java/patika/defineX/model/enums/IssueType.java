@@ -1,8 +1,18 @@
 package patika.defineX.model.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum IssueType {
-    TASK,
-    STORY,
-    BUG,
-    EPIC
+    TASK("Task"),
+    BUG("Bug"),
+    STORY("Story"),
+    FEATURE("Feature"),
+    EPIC("Epic");
+
+    private final String displayName;
+
+    IssueType(String displayName) {
+        this.displayName = displayName;
+    }
 }
