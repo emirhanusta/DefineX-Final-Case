@@ -1,6 +1,8 @@
 package patika.defineX.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class IssueService {
+    private static final Logger log = LoggerFactory.getLogger(IssueService.class);
 
     private final IssueRepository issueRepository;
     private final ProjectService projectService;
@@ -31,33 +34,45 @@ public class IssueService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     public List<IssueResponse> listAllByProjectId(UUID projectId) {
+        log.info("Fetching all issues for project ID: {}", projectId);
         projectService.findById(projectId);
-        return issueRepository.findAllByProjectIdAndDeletedAtNull(projectId).stream()
+        List<IssueResponse> issueResponses = issueRepository.findAllByProjectIdAndDeletedAtNull(projectId).stream()
                 .map(IssueResponse::from)
                 .toList();
+        log.info("Found {} issues for project ID: {}", issueResponses.size(), projectId);
+        return issueResponses;
     }
 
     public IssueResponse getById(UUID id) {
-        return IssueResponse.from(findById(id));
+        log.info("Fetching issue with ID: {}", id);
+        IssueResponse issueResponse = IssueResponse.from(findById(id));
+        log.info("Fetched issue: {}", issueResponse);
+        return issueResponse;
     }
 
     public IssueResponse save(IssueRequest issueRequest) {
+        log.info("Saving new issue with project ID: {} and reporter ID: {}", issueRequest.projectId(), issueRequest.reporterId());
         Issue issue = IssueRequest.from(issueRequest);
         issue.setProject(projectService.findById(issueRequest.projectId()));
         issue.setReporter(userService.findById(issueRequest.reporterId()));
         if (issueRequest.assigneeId() != null) {
             issue.setAssignee(userService.findById(issueRequest.assigneeId()));
         }
-        return IssueResponse.from(issueRepository.save(issue));
+        IssueResponse savedIssue = IssueResponse.from(issueRepository.save(issue));
+        log.info("Saved new issue with ID: {}", savedIssue.id());
+        return savedIssue;
     }
 
     public IssueResponse update(UUID id, IssueUpdateRequest issueUpdateRequest) {
+        log.info("Updating issue with ID: {}", id);
         Issue issue = findById(id);
 
         if (issueUpdateRequest.assigneeId() == null) {
             issue.setAssignee(null);
+            log.info("Removed assignee from issue with ID: {}", id);
         } else {
             issue.setAssignee(userService.findById(issueUpdateRequest.assigneeId()));
+            log.info("Assigned user ID {} to issue with ID: {}", issueUpdateRequest.assigneeId(), id);
         }
 
         issue.setType(issueUpdateRequest.type());
@@ -68,14 +83,18 @@ public class IssueService {
         issue.setPriority(issueUpdateRequest.priority());
         issue.setDueDate(issueUpdateRequest.dueDate());
 
-        return IssueResponse.from(issueRepository.save(issue));
+        IssueResponse updatedIssue = IssueResponse.from(issueRepository.save(issue));
+        log.info("Updated issue with ID: {}", id);
+        return updatedIssue;
     }
 
     @Transactional
     public IssueResponse updateStatus(UUID id, IssueStatusChangeRequest request) {
+        log.info("Changing status of issue with ID: {} to {}", id, request.status());
         Issue issue = findById(id);
 
         if (issue.getStatus() == request.status()) {
+            log.info("Status of issue with ID: {} is already {}", id, request.status());
             return IssueResponse.from(issue);
         }
 
@@ -84,36 +103,69 @@ public class IssueService {
         }
 
         if ((request.status() == IssueStatus.BLOCKED || request.status() == IssueStatus.CANCELLED) && request.reason().isEmpty()) {
-            throw new StatusChangeException("If the issue is blocked or cancelled, a reason must be provided.");
+            throw new StatusChangeException("A reason must be provided when the status is " + request.status());
         }
+
+        if (!isStatusChangeValid(issue.getStatus(), request.status())) {
+            throw new StatusChangeException("Invalid status change from " + issue.getStatus() + " to " + request.status());
+        }
+
         applicationEventPublisher.publishEvent(new HistoryCreatedEvent(issue, request));
         issue.setStatus(request.status());
-        return IssueResponse.from(issueRepository.save(issue));
+        IssueResponse updatedIssue = IssueResponse.from(issueRepository.save(issue));
+        log.info("Successfully updated status of issue with ID: {} to {}", id, request.status());
+        return updatedIssue;
     }
 
     @Transactional
     public void delete(UUID id) {
+        log.info("Deleting issue with ID: {}", id);
         Issue issue = findById(id);
         issue.softDelete();
         issue.setStatus(IssueStatus.CANCELLED);
         issueRepository.save(issue);
         applicationEventPublisher.publishEvent(new IssueDeletedEvent(id));
+        log.info("Successfully deleted issue with ID: {}", id);
     }
 
     @EventListener
     @Transactional
     protected void deleteAllByProjectId(ProjectDeletedEvent event) {
+        log.info("Deleting all issues for project ID: {}", event.projectId());
         List<Issue> issues = issueRepository.findAllByProjectIdAndDeletedAtNull(event.projectId());
         issues.forEach(issue -> {
             issue.softDelete();
             applicationEventPublisher.publishEvent(new IssueDeletedEvent(issue.getId()));
         });
         issueRepository.saveAll(issues);
+        log.info("Successfully deleted {} issues for project ID: {}", issues.size(), event.projectId());
     }
 
     protected Issue findById(UUID id) {
+        log.debug("Finding issue with ID: {}", id);
         return issueRepository.findByIdAndDeletedAtNull(id)
-                .orElseThrow(() -> new CustomNotFoundException("Issue not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.error("Issue not found with ID: {}", id);
+                    return new CustomNotFoundException("Issue not found with id: " + id);
+                });
+    }
+
+    private boolean isStatusChangeValid(IssueStatus currentStatus, IssueStatus newStatus) {
+        log.debug("Validating status change from {} to {}", currentStatus, newStatus);
+        boolean isValid = switch (currentStatus) {
+            case BACKLOG -> newStatus == IssueStatus.IN_ANALYSIS;
+            case IN_ANALYSIS -> newStatus == IssueStatus.BACKLOG ||
+                    newStatus == IssueStatus.IN_PROGRESS ||
+                    newStatus == IssueStatus.BLOCKED;
+            case IN_PROGRESS -> newStatus == IssueStatus.IN_ANALYSIS ||
+                    newStatus == IssueStatus.COMPLETED ||
+                    newStatus == IssueStatus.BLOCKED;
+            case BLOCKED -> newStatus == IssueStatus.IN_PROGRESS ||
+                    newStatus == IssueStatus.CANCELLED;
+            default -> false;
+        };
+        log.debug("Status change validity: {}", isValid);
+        return isValid;
     }
 
 }
