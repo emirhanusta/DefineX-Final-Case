@@ -34,13 +34,13 @@ public class IssueController {
         return ResponseEntity.ok(issueService.getById(id));
     }
 
-    @PreAuthorize("hasAnyRole('PROJECT_MANAGER', 'TEAM_LEADER')")
+    @PreAuthorize("hasAnyAuthority('PROJECT_MANAGER', 'TEAM_LEADER')")
     @PostMapping("/v1")
     public ResponseEntity<IssueResponse> save(@Valid @RequestBody IssueRequest issueRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(issueService.save(issueRequest));
     }
 
-    @PreAuthorize("hasAnyRole('PROJECT_MANAGER', 'TEAM_LEADER')")
+    @PreAuthorize("hasAnyAuthority('PROJECT_MANAGER', 'TEAM_LEADER')")
     @PutMapping("/v1/{id}")
     public ResponseEntity<IssueResponse> update(@PathVariable UUID id,@Valid @RequestBody IssueUpdateRequest issueRequest) {
         return ResponseEntity.ok(issueService.update(id, issueRequest));
@@ -51,7 +51,7 @@ public class IssueController {
         return ResponseEntity.ok(issueService.updateStatus(id, request));
     }
 
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         issueService.delete(id);

@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import patika.defineX.dto.request.LoginRequest;
+import patika.defineX.dto.request.RefreshTokenRequest;
 import patika.defineX.dto.request.UserRequest;
 import patika.defineX.dto.response.TokenResponse;
 import patika.defineX.dto.response.UserResponse;
@@ -42,10 +43,15 @@ public class AuthService {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password()));
             return new TokenResponse(
                     UserResponse.from(user),
-                    tokenService.generateToken(user.getEmail())
+                    tokenService.generateAccessToken(user.getEmail()),
+                    tokenService.createRefreshToken(user)
             );
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Invalid email or password");
         }
+    }
+
+    public  TokenResponse refresh (RefreshTokenRequest request) {
+        return tokenService.validateRefreshToken(request.refreshToken());
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import patika.defineX.dto.request.LoginRequest;
+import patika.defineX.dto.request.RefreshTokenRequest;
 import patika.defineX.dto.request.UserRequest;
 import patika.defineX.dto.response.TokenResponse;
 import patika.defineX.dto.response.UserResponse;
@@ -31,5 +32,10 @@ public class AuthController {
     @PostMapping("/v1/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody UserRequest userRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(userRequest));
+    }
+
+    @PostMapping("/v1/refresh")
+    public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request));
     }
 }

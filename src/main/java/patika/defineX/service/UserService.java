@@ -19,10 +19,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final TeamMemberService teamMemberService;
+    private final TokenService tokenService;
 
-    public UserService(UserRepository userRepository, TeamMemberService teamMemberService) {
+    public UserService(UserRepository userRepository, TeamMemberService teamMemberService, TokenService tokenService) {
         this.userRepository = userRepository;
         this.teamMemberService = teamMemberService;
+        this.tokenService = tokenService;
     }
 
     public List<UserResponse> listAll() {
@@ -80,6 +82,7 @@ public class UserService {
         user.softDelete();
         userRepository.save(user);
         teamMemberService.deleteAllByUserId(id);
+        tokenService.deleteRefreshTokenByUserId(id);
     }
 
     protected User findById(UUID id) {

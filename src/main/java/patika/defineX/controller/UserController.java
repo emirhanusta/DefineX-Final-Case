@@ -2,7 +2,6 @@ package patika.defineX.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import patika.defineX.dto.request.UserRequest;
@@ -38,14 +37,13 @@ public class UserController {
         return ResponseEntity.ok(userService.update(id, userRequest));
     }
 
-    @Secured("ROLE_PROJECT_MANAGER")
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @PatchMapping("/v1/{id}/roles/add")
     public ResponseEntity<UserResponse> addRole(@PathVariable UUID id, @RequestParam Role role) {
         return ResponseEntity.ok(userService.addRole(id, role));
     }
 
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @PatchMapping("/v1/{id}/roles/remove")
     public ResponseEntity<UserResponse> removeRole(@PathVariable UUID id, @RequestParam Role role) {
         return ResponseEntity.ok(userService.removeRole(id, role));

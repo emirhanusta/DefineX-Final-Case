@@ -32,19 +32,19 @@ public class DepartmentController {
         return ResponseEntity.ok(departmentService.getById(id));
     }
 
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @PostMapping("/v1")
     public ResponseEntity<DepartmentResponse> save(@Valid @RequestBody DepartmentRequest departmentRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(departmentService.save(departmentRequest));
     }
 
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @PutMapping("/v1/{id}")
     public ResponseEntity<DepartmentResponse> update(@PathVariable UUID id,@Valid @RequestBody DepartmentRequest departmentRequest) {
         return ResponseEntity.ok(departmentService.update(id, departmentRequest));
     }
 
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         departmentService.delete(id);

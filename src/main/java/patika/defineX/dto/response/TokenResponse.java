@@ -2,6 +2,7 @@ package patika.defineX.dto.response;
 
 public record TokenResponse(
         UserResponse user,
-        String token
+        String accessToken,
+        String refreshToken
 ) {
 }

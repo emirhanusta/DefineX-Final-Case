@@ -32,25 +32,25 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.getById(id));
     }
 
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @PostMapping("/v1")
     public ResponseEntity<ProjectResponse> save(@Valid @RequestBody ProjectRequest projectRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(projectService.save(projectRequest));
     }
 
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @PutMapping("/v1/{id}")
     public ResponseEntity<ProjectResponse> update(@PathVariable UUID id,@Valid @RequestBody ProjectRequest projectRequest) {
         return ResponseEntity.ok(projectService.update(id, projectRequest));
     }
 
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @PatchMapping("/v1/{id}")
     public ResponseEntity<ProjectResponse> updateStatus(@PathVariable UUID id, @RequestParam String status) {
         return ResponseEntity.ok(projectService.updateStatus(id, status));
     }
 
-    @PreAuthorize("hasRole('PROJECT_MANAGER')")
+    @PreAuthorize("hasAuthority('PROJECT_MANAGER')")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         projectService.delete(id);

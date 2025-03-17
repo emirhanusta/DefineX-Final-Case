@@ -91,4 +91,12 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
                 HttpStatus.UNAUTHORIZED
         );
     }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<Object> handleTokenExpiredException(TokenExpiredException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.UNAUTHORIZED, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.UNAUTHORIZED
+        );
+    }
 }
