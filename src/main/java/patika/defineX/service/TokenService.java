@@ -28,11 +28,11 @@ public class TokenService {
     private static final Logger logger = LoggerFactory.getLogger(TokenService.class);
 
     @Value("${jwt.secret-key}")
-    private String token;
+    String token;
     @Value("${jwt.access-expiration-time}")
-    private Integer expirationTime;
+    Integer expirationTime;
     @Value("${jwt.refresh-expiration-time}")
-    private Integer expireSeconds;
+    Integer expireSeconds;
 
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -93,11 +93,7 @@ public class TokenService {
 
     public TokenResponse validateRefreshToken(String refreshToken) {
         logger.info("Validating refresh token: {}", refreshToken);
-        RefreshToken token = refreshTokenRepository.findByTokenAndDeletedAtNull(refreshToken)
-                .orElseThrow(() -> {
-                    logger.error("Refresh token not found: {}", refreshToken);
-                    return new CustomNotFoundException("Refresh token not found");
-                });
+        RefreshToken token = getRefreshToken(refreshToken);
 
         if (token.getExpiryDate().before(new Date())) {
             logger.warn("Refresh token has expired: {}", refreshToken);
@@ -116,6 +112,25 @@ public class TokenService {
         );
     }
 
+    public void deleteRefreshTokenByUserId(UUID id) {
+        logger.info("Deleting refresh token for user: {}", id);
+        RefreshToken refreshToken = refreshTokenRepository.findByUserIdAndDeletedAtNull(id);
+        if (refreshToken != null) {
+            logger.debug("Found refresh token for user: {}. Soft deleting it", id);
+            refreshToken.softDelete();
+            refreshTokenRepository.save(refreshToken);
+        } else {
+            logger.warn("No refresh token found for user: {}", id);
+        }
+    }
+
+    protected void deleteRefreshToken(String refreshToken) {
+        logger.info("Deleting refresh token: {}", refreshToken);
+        RefreshToken token = getRefreshToken(refreshToken);
+        token.softDelete();
+        refreshTokenRepository.save(token);
+    }
+
     private String createAccessToken(Map<String, Object> claims, String email) {
         logger.info("Creating access token for email: {}", email);
         return Jwts.builder()
@@ -127,21 +142,17 @@ public class TokenService {
                 .compact();
     }
 
-    private Key getKey() {
+    Key getKey() {
         logger.debug("Getting key for JWT signing");
         byte[] keyBytes = Decoders.BASE64.decode(token);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public void deleteRefreshTokenByUserId(UUID id) {
-        logger.info("Deleting refresh token for user: {}", id);
-        RefreshToken refreshToken = refreshTokenRepository.findByUserIdAndDeletedAtNull(id);
-        if (refreshToken != null) {
-            logger.debug("Found refresh token for user: {}. Soft deleting it", id);
-            refreshToken.softDelete();
-            refreshTokenRepository.save(refreshToken);
-        } else {
-            logger.warn("No refresh token found for user: {}", id);
-        }
+    private RefreshToken getRefreshToken(String token) {
+        return refreshTokenRepository.findByTokenAndDeletedAtNull(token)
+                .orElseThrow(() -> {
+                    logger.error("Refresh token not found: {}", token);
+                    return new CustomNotFoundException("Refresh token not found");
+                });
     }
 }

@@ -1,5 +1,7 @@
 package patika.defineX.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.UserRequest;
@@ -17,6 +19,8 @@ import java.util.UUID;
 @Service
 public class UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
     private final TeamMemberService teamMemberService;
     private final TokenService tokenService;
@@ -28,23 +32,32 @@ public class UserService {
     }
 
     public List<UserResponse> listAll() {
-        return userRepository.findAllByDeletedAtNull().stream()
+        logger.info("Listing all users");
+        List<UserResponse> users = userRepository.findAllByDeletedAtNull().stream()
                 .map(UserResponse::from)
                 .toList();
+        logger.info("Found {} users", users.size());
+        return users;
     }
 
     public UserResponse getById(UUID id) {
+        logger.info("Fetching user by id: {}", id);
         User user = findById(id);
+        logger.info("User found with id: {}", id);
         return UserResponse.from(user);
     }
 
     public UserResponse save(User user) {
+        logger.info("Saving user with email: {}", user.getEmail());
         existsByEmail(user.getEmail());
         user.setAuthorities(Set.of(Role.TEAM_MEMBER));
-        return UserResponse.from(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+        logger.info("User saved with id: {}", savedUser.getId());
+        return UserResponse.from(savedUser);
     }
 
     public UserResponse update(UUID id, UserRequest userRequest) {
+        logger.info("Updating user with id: {}", id);
         User user = findById(id);
         if (!user.getEmail().equals(userRequest.email())) {
             existsByEmail(userRequest.email());
@@ -52,51 +65,75 @@ public class UserService {
         user.setName(userRequest.name());
         user.setEmail(userRequest.email());
         user.setPassword(userRequest.password());
-        return UserResponse.from(userRepository.save(user));
+        User updatedUser = userRepository.save(user);
+        logger.info("User updated with id: {}", updatedUser.getId());
+        return UserResponse.from(updatedUser);
     }
 
     public UserResponse addRole(UUID id, Role role) {
+        logger.info("Adding role {} to user with id: {}", role, id);
         User user = findById(id);
         if (user.getAuthorities().contains(role)) {
+            logger.info("User already has role: {}", role);
             return UserResponse.from(user);
         }
         user.getAuthorities().add(role);
-        return UserResponse.from(userRepository.save(user));
+        User updatedUser = userRepository.save(user);
+        logger.info("Role {} added to user with id: {}", role, updatedUser.getId());
+        return UserResponse.from(updatedUser);
     }
 
     public UserResponse removeRole(UUID id, Role role) {
+        logger.info("Removing role {} from user with id: {}", role, id);
         User user = findById(id);
-        if (role == Role.TEAM_MEMBER) {
-            return UserResponse.from(user);
-        }
         if (!user.getAuthorities().contains(role)) {
+            logger.warn("User does not have role: {}", role);
+            throw new CustomNotFoundException("User does not have role: " + role);
+        }
+        if (role == Role.TEAM_MEMBER) {
+            logger.info("Role TEAM_MEMBER cannot be removed");
             return UserResponse.from(user);
         }
+
         user.getAuthorities().remove(role);
-        return UserResponse.from(userRepository.save(user));
+        User updatedUser = userRepository.save(user);
+        logger.info("Role {} removed from user with id: {}", role, updatedUser.getId());
+        return UserResponse.from(updatedUser);
     }
 
     @Transactional
     public void delete(UUID id) {
+        logger.info("Deleting user with id: {}", id);
         User user = findById(id);
         user.softDelete();
         userRepository.save(user);
         teamMemberService.deleteAllByUserId(id);
         tokenService.deleteRefreshTokenByUserId(id);
+        logger.info("User deleted with id: {}", id);
     }
 
     protected User findById(UUID id) {
+        logger.debug("Finding user by id: {}", id);
         return userRepository.findByIdAndDeletedAtNull(id).orElseThrow(
-                () -> new CustomNotFoundException("User not found with id: " + id));
+                () -> {
+                    logger.error("User not found with id: {}", id);
+                    return new CustomNotFoundException("User not found with id: " + id);
+                });
     }
 
     protected User findByEmail(String email) {
+        logger.debug("Finding user by email: {}", email);
         return userRepository.findByEmailAndDeletedAtNull(email).orElseThrow(
-                () -> new CustomNotFoundException("User not found with email: " + email));
+                () -> {
+                    logger.error("User not found with email: {}", email);
+                    return new CustomNotFoundException("User not found with email: " + email);
+                });
     }
 
     private void existsByEmail(String email) {
+        logger.debug("Checking if user exists with email: {}", email);
         if (userRepository.existsByEmailAndDeletedAtNull(email)) {
+            logger.error("User already exists with email: {}", email);
             throw new CustomAlreadyExistException("User already exist with email: " + email);
         }
     }
