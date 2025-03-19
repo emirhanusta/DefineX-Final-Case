@@ -1,5 +1,7 @@
 package patika.defineX.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,8 @@ import java.util.UUID;
 @Service
 public class IssueHistoryService {
 
+    private static final Logger logger = LoggerFactory.getLogger(IssueHistoryService.class);
+
     private final IssueHistoryRepository issueHistoryRepository;
     private final UserService userService;
     private final IssueService issueService;
@@ -29,15 +33,20 @@ public class IssueHistoryService {
     }
 
     public List<IssueHistoryResponse> listAllByIssueId(UUID issueId) {
-        issueService.findById(issueId);
-        return findAllByIssueIdAndIsDeletedFalse(issueId).stream()
+        logger.info("Fetching history records for issue with id: {}", issueId);
+        issueService.findById(issueId); // Ensure issue exists
+        List<IssueHistoryResponse> histories = findAllByIssueIdAndIsDeletedFalse(issueId).stream()
                 .map(IssueHistoryResponse::from)
                 .toList();
+        logger.info("Found {} history records for issue with id: {}", histories.size(), issueId);
+        return histories;
     }
 
     @EventListener
     public void createHistory(HistoryCreatedEvent historyCreatedEvent) {
-        User user = historyCreatedEvent.request().changedBy() != null ? userService.findById(historyCreatedEvent.request().changedBy()) : null;
+        logger.info("Creating history record for issue with id: {}", historyCreatedEvent.issue().getId());
+        User user = historyCreatedEvent.request().changedBy() != null ?
+                userService.findById(historyCreatedEvent.request().changedBy()) : null;
         IssueHistory issueHistory = IssueHistory.builder()
                 .issue(historyCreatedEvent.issue())
                 .previousStatus(historyCreatedEvent.issue().getStatus())
@@ -45,19 +54,22 @@ public class IssueHistoryService {
                 .changedBy(user)
                 .reason(historyCreatedEvent.request().reason())
                 .build();
-        issueHistoryRepository.save(issueHistory);
+        IssueHistory savedHistory = issueHistoryRepository.save(issueHistory);
+        logger.info("History record created with id: {}", savedHistory.getId());
     }
 
     @EventListener
     @Transactional
     public void deleteIssueHistories(IssueDeletedEvent event) {
+        logger.info("Deleting history records for issue with id: {}", event.issueId());
         List<IssueHistory> issueHistories = findAllByIssueIdAndIsDeletedFalse(event.issueId());
         issueHistories.forEach(BaseEntity::softDelete);
         issueHistoryRepository.saveAll(issueHistories);
+        logger.info("Deleted {} history records for issue with id: {}", issueHistories.size(), event.issueId());
     }
 
     private List<IssueHistory> findAllByIssueIdAndIsDeletedFalse(UUID issueId) {
+        logger.debug("Finding history records for issue with id: {} (not deleted)", issueId);
         return issueHistoryRepository.findAllByIssueIdAndDeletedAtNull(issueId);
     }
-
 }

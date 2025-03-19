@@ -1,5 +1,7 @@
 package patika.defineX.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,8 @@ import java.util.UUID;
 @Service
 public class IssueCommentService {
 
+    private static final Logger logger = LoggerFactory.getLogger(IssueCommentService.class);
+
     private final IssueCommentRepository issueCommentRepository;
     private final UserService userService;
     private final IssueService issueService;
@@ -30,13 +34,17 @@ public class IssueCommentService {
     }
 
     public List<IssueCommentResponse> getIssueComments(UUID issueId) {
-        issueService.findById(issueId);
-        return issueCommentRepository.findAllByIssueIdAndDeletedAtNull(issueId).stream()
+        logger.info("Fetching comments for issue with id: {}", issueId);
+        issueService.findById(issueId); // Ensure issue exists
+        List<IssueCommentResponse> comments = issueCommentRepository.findAllByIssueIdAndDeletedAtNull(issueId).stream()
                 .map(IssueCommentResponse::from)
                 .toList();
+        logger.info("Found {} comments for issue with id: {}", comments.size(), issueId);
+        return comments;
     }
 
-    public IssueCommentResponse create (IssueCommentRequest issueCommentRequest) {
+    public IssueCommentResponse create(IssueCommentRequest issueCommentRequest) {
+        logger.info("Creating comment for issue with id: {}", issueCommentRequest.issueId());
         Issue issue = issueService.findById(issueCommentRequest.issueId());
         User user = userService.findById(issueCommentRequest.userId());
         IssueComment issueComment = IssueComment.builder()
@@ -44,31 +52,44 @@ public class IssueCommentService {
                 .user(user)
                 .comment(issueCommentRequest.comment())
                 .build();
-        return IssueCommentResponse.from(issueCommentRepository.save(issueComment));
+        IssueComment savedComment = issueCommentRepository.save(issueComment);
+        logger.info("Comment created with id: {}", savedComment.getId());
+        return IssueCommentResponse.from(savedComment);
     }
 
-    public IssueCommentResponse update (UUID issueCommentId, IssueCommentRequest issueCommentRequest) {
+    public IssueCommentResponse update(UUID issueCommentId, IssueCommentRequest issueCommentRequest) {
+        logger.info("Updating comment with id: {}", issueCommentId);
         IssueComment issueComment = findById(issueCommentId);
         issueComment.setComment(issueCommentRequest.comment());
-        return IssueCommentResponse.from(issueCommentRepository.save(issueComment));
+        IssueComment updatedComment = issueCommentRepository.save(issueComment);
+        logger.info("Comment updated with id: {}", updatedComment.getId());
+        return IssueCommentResponse.from(updatedComment);
     }
 
-    public void delete (UUID id) {
+    public void delete(UUID id) {
+        logger.info("Deleting comment with id: {}", id);
         IssueComment issueComment = findById(id);
         issueComment.softDelete();
         issueCommentRepository.save(issueComment);
+        logger.info("Comment deleted with id: {}", id);
     }
 
     @EventListener
     @Transactional
     public void deleteIssueComments(IssueDeletedEvent event) {
+        logger.info("Deleting comments for issue with id: {}", event.issueId());
         List<IssueComment> issueComments = issueCommentRepository.findAllByIssueIdAndDeletedAtNull(event.issueId());
         issueComments.forEach(BaseEntity::softDelete);
         issueCommentRepository.saveAll(issueComments);
+        logger.info("Deleted {} comments for issue with id: {}", issueComments.size(), event.issueId());
     }
 
     private IssueComment findById(UUID id) {
+        logger.debug("Finding comment by id: {}", id);
         return issueCommentRepository.findByIdAndDeletedAtNull(id)
-                .orElseThrow(() -> new CustomNotFoundException("Issue comment not found with id: " + id));
+                .orElseThrow(() -> {
+                    logger.error("Comment not found with id: {}", id);
+                    return new CustomNotFoundException("Issue comment not found with id: " + id);
+                });
     }
 }

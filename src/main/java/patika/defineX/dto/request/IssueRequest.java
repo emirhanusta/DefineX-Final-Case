@@ -3,6 +3,7 @@ package patika.defineX.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import patika.defineX.model.Issue;
 import patika.defineX.model.enums.IssueStatus;
 import patika.defineX.model.enums.IssueType;
@@ -11,6 +12,7 @@ import patika.defineX.model.enums.PriorityLevel;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Builder
 public record IssueRequest(
         @NotNull
         UUID projectId,

@@ -98,15 +98,7 @@ public class IssueService {
             return IssueResponse.from(issue);
         }
 
-        if (issue.getStatus() == IssueStatus.COMPLETED) {
-            throw new StatusChangeException("Issue status cannot be changed because it is completed.");
-        }
-
-        if ((request.status() == IssueStatus.BLOCKED || request.status() == IssueStatus.CANCELLED) && request.reason().isEmpty()) {
-            throw new StatusChangeException("A reason must be provided when the status is " + request.status());
-        }
-
-        if (!isStatusChangeValid(issue.getStatus(), request.status())) {
+        if (!isStatusChangeValid(issue.getStatus(), request.status(), request.reason())) {
             throw new StatusChangeException("Invalid status change from " + issue.getStatus() + " to " + request.status());
         }
 
@@ -135,6 +127,7 @@ public class IssueService {
         List<Issue> issues = issueRepository.findAllByProjectIdAndDeletedAtNull(event.projectId());
         issues.forEach(issue -> {
             issue.softDelete();
+            issue.setStatus(IssueStatus.CANCELLED);
             applicationEventPublisher.publishEvent(new IssueDeletedEvent(issue.getId()));
         });
         issueRepository.saveAll(issues);
@@ -150,8 +143,18 @@ public class IssueService {
                 });
     }
 
-    private boolean isStatusChangeValid(IssueStatus currentStatus, IssueStatus newStatus) {
+    private boolean isStatusChangeValid(IssueStatus currentStatus, IssueStatus newStatus, String reason) {
         log.debug("Validating status change from {} to {}", currentStatus, newStatus);
+
+        if (currentStatus == IssueStatus.COMPLETED) {
+            throw new StatusChangeException("Issue status cannot be changed because it is completed.");
+        }
+
+        if ((newStatus == IssueStatus.BLOCKED || newStatus == IssueStatus.CANCELLED)
+                && reason == null) {
+            throw new StatusChangeException("A reason must be provided when the status is " + newStatus);
+        }
+
         boolean isValid = switch (currentStatus) {
             case BACKLOG -> newStatus == IssueStatus.IN_ANALYSIS;
             case IN_ANALYSIS -> newStatus == IssueStatus.BACKLOG ||
