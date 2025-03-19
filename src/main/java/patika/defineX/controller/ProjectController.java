@@ -7,7 +7,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import patika.defineX.dto.request.ProjectRequest;
 import patika.defineX.dto.response.ProjectResponse;
+import patika.defineX.dto.response.TeamMemberResponse;
 import patika.defineX.service.ProjectService;
+import patika.defineX.service.TeamMemberService;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,9 +19,16 @@ import java.util.UUID;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final TeamMemberService teamMemberService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, TeamMemberService teamMemberService) {
         this.projectService = projectService;
+        this.teamMemberService = teamMemberService;
+    }
+
+    @GetMapping("/all-members/{id}")
+    public ResponseEntity<List<TeamMemberResponse>> getMembersByProject(@PathVariable UUID id) {
+        return ResponseEntity.ok(teamMemberService.getAllMembersByProjectId(id));
     }
 
     @GetMapping("/v1/list/{departmentId}")

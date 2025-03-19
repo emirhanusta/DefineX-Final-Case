@@ -102,8 +102,10 @@ public class TeamServiceTest {
         TeamRequest teamRequest = new TeamRequest("New Team", projectId);
         when(projectService.findById(projectId)).thenReturn(project);
 
-        Team teamToSave = new Team();
-        teamToSave.setName("NEW TEAM");
+        Team teamToSave = Team.builder()
+                .name("NEW TEAM")
+                .project(project)
+                .build();
         when(teamRepository.save(any(Team.class))).thenReturn(teamToSave);
 
         TeamResponse result = teamService.save(teamRequest);

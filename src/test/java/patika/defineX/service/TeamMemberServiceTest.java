@@ -67,6 +67,18 @@ public class TeamMemberServiceTest {
     }
 
     @Test
+    void getAllMembersByProjectId_ShouldReturnTeamMemberList() {
+        UUID projectId = team.getProject().getId();
+        when(teamMemberRepository.findAllByProjectIdAndDeletedAtNull(projectId))
+                .thenReturn(Collections.singletonList(teamMember));
+
+        List<TeamMemberResponse> response = teamMemberService.getAllMembersByProjectId(projectId);
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+    }
+
+    @Test
     void createTeamMember_WhenNotExists_ShouldCreate() {
         when(teamMemberRepository.findByTeamAndUser(team, user)).thenReturn(Optional.empty());
         when(teamMemberRepository.save(any(TeamMember.class))).thenReturn(teamMember);

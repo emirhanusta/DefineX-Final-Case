@@ -37,6 +37,16 @@ public class TeamMemberService {
         return teamMembers;
     }
 
+    public List<TeamMemberResponse> getAllMembersByProjectId(UUID projectId) {
+        logger.info("Fetching team members for project with id: {} from database", projectId);
+        List<TeamMemberResponse> teamMembers = teamMemberRepository.findAllByProjectIdAndDeletedAtNull(projectId)
+                .stream()
+                .map(TeamMemberResponse::from)
+                .toList();
+        logger.info("{} team members found for project id: {}", teamMembers.size(), projectId);
+        return teamMembers;
+    }
+
     public void createTeamMember(Team team, User user) {
         logger.info("Creating team member for team with id: {} and user with id: {}", team.getId(), user.getId());
         Optional<TeamMember> existingTeamMember = teamMemberRepository.findByTeamAndUser(team, user);
