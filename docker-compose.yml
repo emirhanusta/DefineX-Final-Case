@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+    postgres:
+      image: postgres:latest
+      restart: always
+      container_name: postgres
+      ports:
+        - "5432:5432"
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: task_managerDB
+      networks:
+        - shared-network
+
+    app:
+      container_name: task-manager
+      build:
+        context: ./
+        dockerfile: Dockerfile
+      ports:
+        - "8080:8080"
+      environment:
+        - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/task_managerDB
+        - SPRING_DATASOURCE_USERNAME=postgres
+        - SPRING_DATASOURCE_PASSWORD=postgres
+      depends_on:
+        - postgres
+      networks:
+        - shared-network
+      restart: "no"
+
+networks:
+  shared-network:
+    driver: bridge

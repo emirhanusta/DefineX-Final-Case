@@ -155,6 +155,7 @@
                 </executions>
             </plugin>
         </plugins>
+        <finalName>Task-Manager</finalName>
     </build>
 
 </project>

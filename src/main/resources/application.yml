@@ -1,17 +1,15 @@
 spring:
   application:
-    name: final-project
+    name: task-manager
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
+    url: jdbc:postgresql://localhost:5432/task_managerDB
     username: postgres
     password: postgres
-    driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/final-project
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: create
-    show-sql: true
-    database: postgresql
   cache:
     type: simple
 
