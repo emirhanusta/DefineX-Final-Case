@@ -3,6 +3,8 @@ package patika.defineX.service;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ public class IssueService {
     private final UserService userService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    @Cacheable(value = "issues")
     public List<IssueResponse> listAllByProjectId(UUID projectId) {
         log.info("Fetching all issues for project ID: {}", projectId);
         projectService.findById(projectId);
@@ -43,6 +46,7 @@ public class IssueService {
         return issueResponses;
     }
 
+    @Cacheable(value = "issues", key = "#id")
     public IssueResponse getById(UUID id) {
         log.info("Fetching issue with ID: {}", id);
         IssueResponse issueResponse = IssueResponse.from(findById(id));
@@ -50,6 +54,7 @@ public class IssueService {
         return issueResponse;
     }
 
+    @CacheEvict(value = "issues", allEntries = true)
     public IssueResponse save(IssueRequest issueRequest) {
         log.info("Saving new issue with project ID: {} and reporter ID: {}", issueRequest.projectId(), issueRequest.reporterId());
         Issue issue = IssueRequest.from(issueRequest);
@@ -63,6 +68,7 @@ public class IssueService {
         return savedIssue;
     }
 
+    @CacheEvict(value = "issues", allEntries = true)
     public IssueResponse update(UUID id, IssueUpdateRequest issueUpdateRequest) {
         log.info("Updating issue with ID: {}", id);
         Issue issue = findById(id);
@@ -88,6 +94,7 @@ public class IssueService {
         return updatedIssue;
     }
 
+    @CacheEvict(value = "issues", allEntries = true)
     @Transactional
     public IssueResponse updateStatus(UUID id, IssueStatusChangeRequest request) {
         log.info("Changing status of issue with ID: {} to {}", id, request.status());
@@ -109,6 +116,7 @@ public class IssueService {
         return updatedIssue;
     }
 
+    @CacheEvict(value = "issues", allEntries = true)
     @Transactional
     public void delete(UUID id) {
         log.info("Deleting issue with ID: {}", id);
@@ -120,9 +128,10 @@ public class IssueService {
         log.info("Successfully deleted issue with ID: {}", id);
     }
 
+    @CacheEvict(value = "issues", allEntries = true)
     @EventListener
     @Transactional
-    protected void deleteAllByProjectId(ProjectDeletedEvent event) {
+    public   void deleteAllByProjectId(ProjectDeletedEvent event) {
         log.info("Deleting all issues for project ID: {}", event.projectId());
         List<Issue> issues = issueRepository.findAllByProjectIdAndDeletedAtNull(event.projectId());
         issues.forEach(issue -> {

@@ -2,6 +2,8 @@ package patika.defineX.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +25,13 @@ public class DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    public DepartmentService(DepartmentRepository departmentRepository, ApplicationEventPublisher applicationEventPublisher) {
+    public DepartmentService(DepartmentRepository departmentRepository,
+                             ApplicationEventPublisher applicationEventPublisher) {
         this.departmentRepository = departmentRepository;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
+    @Cacheable(value = "departments")
     public List<DepartmentResponse> listAll() {
         log.info("Fetching all departments from the database...");
         List<DepartmentResponse> departments = departmentRepository.findAllByDeletedAtNull()
@@ -38,6 +42,7 @@ public class DepartmentService {
         return departments;
     }
 
+    @Cacheable(value = "departments", key = "#id")
     public DepartmentResponse getById(UUID id) {
         log.info("Fetching department with id: {} from database...", id);
         DepartmentResponse response = DepartmentResponse.from(findById(id));
@@ -45,6 +50,7 @@ public class DepartmentService {
         return response;
     }
 
+    @CacheEvict(value = "departments", allEntries = true)
     public DepartmentResponse save(DepartmentRequest departmentRequest) {
         log.info("Attempting to create a new department with name: {}", departmentRequest.name());
         existsByName(departmentRequest.name().toUpperCase());
@@ -54,6 +60,7 @@ public class DepartmentService {
         return response;
     }
 
+    @CacheEvict(value = "departments", allEntries = true)
     public DepartmentResponse update(UUID id, DepartmentRequest departmentRequest) {
         log.info("Updating department with id: {}", id);
         Department department = findById(id);
@@ -67,6 +74,7 @@ public class DepartmentService {
         return response;
     }
 
+    @CacheEvict(value = "departments", allEntries = true)
     @Transactional
     public void delete(UUID id) {
         log.warn("Attempting to delete department with id: {}", id);

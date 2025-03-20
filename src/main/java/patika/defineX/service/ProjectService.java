@@ -2,6 +2,8 @@ package patika.defineX.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ public class ProjectService {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
+    @Cacheable(value = "projects")
     public List<ProjectResponse> listAllByDepartmentId(UUID departmentId) {
         log.info("Fetching projects for department with id: {} from database", departmentId);
         departmentService.findById(departmentId);
@@ -46,6 +49,7 @@ public class ProjectService {
         return projects;
     }
 
+    @Cacheable(value = "projects", key = "#id")
     public ProjectResponse getById(UUID id) {
         log.info("Fetching project with id: {} from database", id);
         ProjectResponse response = ProjectResponse.from(findById(id));
@@ -53,6 +57,7 @@ public class ProjectService {
         return response;
     }
 
+    @CacheEvict(value = "projects", allEntries = true)
     public ProjectResponse save(ProjectRequest projectRequest) {
         log.info("Creating a new project with title: {}", projectRequest.title());
         existsByTitle(projectRequest.title().toUpperCase());
@@ -63,6 +68,7 @@ public class ProjectService {
         return response;
     }
 
+    @CacheEvict(value = "projects", allEntries = true)
     public ProjectResponse update(UUID id, ProjectRequest projectRequest) {
         log.info("Updating project with id: {}", id);
         Project project = findById(id);
@@ -83,6 +89,7 @@ public class ProjectService {
         return response;
     }
 
+    @CacheEvict(value = "projects", allEntries = true)
     @Transactional
     public void delete(UUID id) {
         log.warn("Attempting to delete project with id: {}", id);
@@ -93,6 +100,7 @@ public class ProjectService {
         log.warn("Project with id: {} has been marked as deleted.", id);
     }
 
+    @CacheEvict(value = "projects", allEntries = true)
     public ProjectResponse updateStatus(UUID id, String status) {
         log.info("Updating project status for id: {} to {}", id, status);
         Project project = findById(id);
@@ -108,9 +116,10 @@ public class ProjectService {
         return response;
     }
 
+    @CacheEvict(value = "projects", allEntries = true)
     @EventListener
     @Transactional
-    protected void deleteAllByDepartmentId(DepartmentDeletedEvent event) {
+    public void deleteAllByDepartmentId(DepartmentDeletedEvent event) {
         log.warn("Deleting all projects for department id: {}", event.departmentId());
 
         List<Project> projects = projectRepository.findAllByDepartmentIdAndDeletedAtNull(event.departmentId());
@@ -123,8 +132,6 @@ public class ProjectService {
         projectRepository.saveAll(projects);
 
         log.warn("{} projects deleted for department id: {}", projects.size(), event.departmentId());
-
-        //cacheService.clearProjectCache(event.departmentId());
     }
 
     protected Project findById(UUID id) {
