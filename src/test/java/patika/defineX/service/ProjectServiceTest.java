@@ -7,6 +7,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import patika.defineX.dto.request.ProjectRequest;
 import patika.defineX.dto.response.ProjectResponse;
 import patika.defineX.event.DepartmentDeletedEvent;
@@ -110,26 +114,33 @@ class ProjectServiceTest {
 
     @Test
     void listAllByDepartmentId_ShouldReturnProjectsResponse() {
-        when(departmentService.findById(any(UUID.class))).thenReturn(department);
-        when(projectRepository.findAllByDepartmentIdAndDeletedAtNull(any(UUID.class))).thenReturn(List.of(project));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Project> projectPage = new PageImpl<>(List.of(project), pageable, 1);
 
-        List<ProjectResponse> responses = projectService.listAllByDepartmentId(departmentId);
+        when(departmentService.findById(any(UUID.class))).thenReturn(department);
+        when(projectRepository.findAllWithPaginationByDepartmentIdAndDeletedAtNull(departmentId,pageable)).thenReturn(projectPage);
+
+        Page<ProjectResponse> responses = projectService.listAllByDepartmentId(departmentId, pageable);
 
         assertNotNull(responses);
-        assertEquals(1, responses.size());
-        assertEquals("Test Project", responses.getFirst().title());
+        assertEquals(1, responses.getTotalElements());
+        assertEquals("Test Project", responses.getContent().getFirst().title());
     }
 
     @Test
     void listAllByDepartmentId_WhenDepartmentNotFound_ShouldThrowException() {
-        when(departmentService.findById(any(UUID.class))).thenThrow(new CustomNotFoundException("Department not found with id: " + departmentId));
+        Pageable pageable = PageRequest.of(0, 10);
 
-        CustomNotFoundException exception = assertThrows(CustomNotFoundException.class, () -> projectService.listAllByDepartmentId(departmentId));
+        when(departmentService.findById(any(UUID.class)))
+                .thenThrow(new CustomNotFoundException("Department not found with id: " + departmentId));
+
+        CustomNotFoundException exception = assertThrows(CustomNotFoundException.class,
+                () -> projectService.listAllByDepartmentId(departmentId, pageable));
         assertEquals("Department not found with id: " + departmentId, exception.getMessage());
     }
 
     @Test
-    void uUpdate_ShouldBeUpdated() {
+    void update_ShouldBeUpdated() {
         when(departmentService.findById(any(UUID.class))).thenReturn(department);
         when(projectRepository.findByIdAndDeletedAtNull(any(UUID.class))).thenReturn(Optional.of(project));
         when(projectRepository.save(any(Project.class))).thenReturn(project);
@@ -139,6 +150,15 @@ class ProjectServiceTest {
         assertNotNull(response);
         assertEquals("TEST PROJECT", response.title());
         verify(projectRepository, times(1)).save(any(Project.class));
+    }
+
+    @Test
+    void update_WhenProjectNotFound_ShouldThrowException() {
+        when(projectRepository.findByIdAndDeletedAtNull(any(UUID.class))).thenReturn(Optional.empty());
+
+        CustomNotFoundException exception = assertThrows(CustomNotFoundException.class,
+                () -> projectService.update(projectId, projectRequest));
+        assertEquals("Project not found with id: " + projectId, exception.getMessage());
     }
 
     @Test

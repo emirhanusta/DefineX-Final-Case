@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.DepartmentRequest;
@@ -15,7 +17,6 @@ import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.model.Department;
 import patika.defineX.repository.DepartmentRepository;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -32,13 +33,12 @@ public class DepartmentService {
     }
 
     @Cacheable(value = "departments")
-    public List<DepartmentResponse> listAll() {
+    public Page<DepartmentResponse> listAll(Pageable pageable) {
         log.info("Fetching all departments from the database...");
-        List<DepartmentResponse> departments = departmentRepository.findAllByDeletedAtNull()
-                .stream()
-                .map(DepartmentResponse::from)
-                .toList();
-        log.info("Retrieved {} departments.", departments.size());
+        Page<DepartmentResponse> departments = departmentRepository.findAllWithPaginationByDeletedAtNull(pageable)
+                .map(DepartmentResponse::from);
+
+        log.info("Retrieved {} departments.", departments.getTotalElements());
         return departments;
     }
 

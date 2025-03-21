@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +23,7 @@ import patika.defineX.service.TeamMemberService;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -47,7 +50,9 @@ class ProjectControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(projectController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(projectController)
+                        .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                        .build();
 
         projectId = UUID.randomUUID();
         departmentId = UUID.randomUUID();
@@ -58,13 +63,21 @@ class ProjectControllerTest {
 
     @Test
     void testListAllByDepartmentId_ShouldReturnProjectList() throws Exception {
-        when(projectService.listAllByDepartmentId(departmentId)).thenReturn(List.of(projectResponse));
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        Page<ProjectResponse> projectPage = new PageImpl<>(List.of(projectResponse), pageable, 1);
+
+
+        when(projectService.listAllByDepartmentId(departmentId, pageable)).thenReturn(projectPage);
 
         mockMvc.perform(get("/api/projects/v1/list/{departmentId}", departmentId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                    .param("page", "0")
+                    .param("size", "10")
+                    .param("sort", "createdAt,desc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1))
-                .andExpect(jsonPath("$[0].title").value("New Project"));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].id").value(projectResponse.id().toString()));
     }
 
     @Test

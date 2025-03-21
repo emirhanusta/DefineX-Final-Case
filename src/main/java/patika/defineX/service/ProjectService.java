@@ -6,6 +6,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.ProjectRequest;
@@ -38,14 +40,12 @@ public class ProjectService {
     }
 
     @Cacheable(value = "projects")
-    public List<ProjectResponse> listAllByDepartmentId(UUID departmentId) {
+    public Page<ProjectResponse> listAllByDepartmentId(UUID departmentId, Pageable pageable) {
         log.info("Fetching projects for department with id: {} from database", departmentId);
         departmentService.findById(departmentId);
-        List<ProjectResponse> projects = projectRepository.findAllByDepartmentIdAndDeletedAtNull(departmentId)
-                .stream()
-                .map(ProjectResponse::from)
-                .toList();
-        log.info("{} projects found for department id: {}", projects.size(), departmentId);
+        Page<ProjectResponse> projects = projectRepository.findAllWithPaginationByDepartmentIdAndDeletedAtNull(departmentId, pageable)
+                .map(ProjectResponse::from);
+        log.info("{} projects found for department id: {}", projects.getTotalElements(), departmentId);
         return projects;
     }
 
@@ -74,9 +74,7 @@ public class ProjectService {
         Project project = findById(id);
 
         if (!project.getTitle().equalsIgnoreCase(projectRequest.title())) {
-            if (projectRepository.existsByTitleAndDeletedAtNull(projectRequest.title().toUpperCase())) {
-                throw new CustomAlreadyExistException("Project already exists with name: " + projectRequest.title().toUpperCase());
-            }
+            existsByTitle(projectRequest.title().toUpperCase());
         }
 
         project.setTitle(projectRequest.title().toUpperCase());

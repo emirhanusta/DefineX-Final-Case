@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,6 +19,7 @@ import patika.defineX.service.DepartmentService;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -38,16 +41,23 @@ public class DepartmentControllerTest {
     @Test
     void testFindAll() throws Exception {
         DepartmentResponse departmentResponse = new DepartmentResponse(UUID.randomUUID(), "IT Department");
-        List<DepartmentResponse> departmentResponses = List.of(departmentResponse);
 
-        when(departmentService.listAll()).thenReturn(departmentResponses);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        Page<DepartmentResponse> departmentResponsePage = new PageImpl<>(List.of(departmentResponse), pageable, 1);
 
-        mockMvc = MockMvcBuilders.standaloneSetup(departmentController).build();
+        when(departmentService.listAll(pageable)).thenReturn(departmentResponsePage);
 
-        mockMvc.perform(get("/api/departments/v1"))
+        mockMvc = MockMvcBuilders.standaloneSetup(departmentController)
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .build();
+
+        mockMvc.perform(get("/api/departments/v1")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "createdAt,desc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].name").value("IT Department"));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].id").value(departmentResponse.id().toString()));
     }
 
     @Test

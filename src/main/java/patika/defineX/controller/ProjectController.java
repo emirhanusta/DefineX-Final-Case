@@ -3,6 +3,8 @@ package patika.defineX.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,11 +44,17 @@ public class ProjectController {
     @Operation(
             method = "GET",
             summary = "List all projects",
-            description = "List all projects in the system"
+            description = """
+                    List all projects in the system with pagination
+                    You can customize the results using query parameters:
+                    - `page`: The page number (default: 0).
+                    - `size`: The number of records per page (default: 20).
+                    - `sort`: Sorting criteria in the format  Examples: `createdAt,desc` (default)
+                    """
     )
     @GetMapping("/v1/list/{departmentId}")
-    public ResponseEntity<List<ProjectResponse>> listAllByDepartmentId(@PathVariable UUID departmentId) {
-        return ResponseEntity.ok(projectService.listAllByDepartmentId(departmentId));
+    public ResponseEntity<Page<ProjectResponse>> listAllByDepartmentId(@PathVariable UUID departmentId, Pageable pageable) {
+        return ResponseEntity.ok(projectService.listAllByDepartmentId(departmentId, pageable));
     }
 
     @Operation(

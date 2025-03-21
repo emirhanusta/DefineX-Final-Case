@@ -8,6 +8,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import patika.defineX.dto.request.DepartmentRequest;
 import patika.defineX.dto.response.DepartmentResponse;
 import patika.defineX.event.DepartmentDeletedEvent;
@@ -51,13 +55,15 @@ class DepartmentServiceTest {
 
     @Test
     void listAll_ShouldReturnDepartmentList() {
-        when(departmentRepository.findAllByDeletedAtNull()).thenReturn(List.of(department));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Department> departmentResponsePage = new PageImpl<>(List.of(department), pageable, 1);
 
-        List<DepartmentResponse> result = departmentService.listAll();
+        when(departmentRepository.findAllWithPaginationByDeletedAtNull(pageable)).thenReturn(departmentResponsePage);
 
-        assertEquals(1, result.size());
-        assertEquals("IT", result.getFirst().name());
-        verify(departmentRepository, times(1)).findAllByDeletedAtNull();
+        Page<DepartmentResponse> result = departmentService.listAll(pageable);
+
+        assertEquals(1, result.getTotalElements());
+        verify(departmentRepository, times(1)).findAllWithPaginationByDeletedAtNull(pageable);
     }
 
     @Test
