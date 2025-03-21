@@ -99,4 +99,12 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
                 HttpStatus.UNAUTHORIZED
         );
     }
+
+    @ExceptionHandler(CustomAccessDeniedException.class)
+    public ResponseEntity<Object> handleCustomAccessDeniedException(CustomAccessDeniedException ex, HttpServletRequest req) {
+        return new ResponseEntity<>(new ErrorResponse(
+                ex.getMessage(), HttpStatus.FORBIDDEN, System.currentTimeMillis(), req.getRequestURI()),
+                HttpStatus.FORBIDDEN
+        );
+    }
 }

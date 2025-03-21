@@ -1,6 +1,5 @@
 package patika.defineX.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -33,7 +32,6 @@ public record IssueRequest(
         String userStory,
         String acceptanceCriteria,
         IssueStatus status,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime dueDate
 ) {
     public static Issue from (IssueRequest issueRequest) {
