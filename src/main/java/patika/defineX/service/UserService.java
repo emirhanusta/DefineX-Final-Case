@@ -2,10 +2,12 @@ package patika.defineX.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import patika.defineX.dto.request.UserRequest;
 import patika.defineX.dto.response.UserResponse;
+import patika.defineX.exception.custom.CustomAccessDeniedException;
 import patika.defineX.exception.custom.CustomAlreadyExistException;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.model.enums.Role;
@@ -13,6 +15,7 @@ import patika.defineX.model.User;
 import patika.defineX.repository.UserRepository;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -59,6 +62,12 @@ public class UserService {
     public UserResponse update(UUID id, UserRequest userRequest) {
         logger.info("Updating user with id: {}", id);
         User user = findById(id);
+
+        if (!Objects.equals(user.getEmail(), getAuthenticatedUser())){
+            logger.error("User is not authorized to update user with id: {}", id);
+            throw new CustomAccessDeniedException("User is not authorized to update user with id: " + id);
+        }
+
         if (!user.getEmail().equals(userRequest.email())) {
             existsByEmail(userRequest.email());
         }
@@ -136,5 +145,10 @@ public class UserService {
             logger.error("User already exists with email: {}", email);
             throw new CustomAlreadyExistException("User already exist with email: " + email);
         }
+    }
+
+
+    public String getAuthenticatedUser() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

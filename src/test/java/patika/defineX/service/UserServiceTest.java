@@ -6,8 +6,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import patika.defineX.dto.request.UserRequest;
 import patika.defineX.dto.response.UserResponse;
+import patika.defineX.exception.custom.CustomAccessDeniedException;
 import patika.defineX.exception.custom.CustomAlreadyExistException;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.model.User;
@@ -100,10 +104,38 @@ class UserServiceTest {
         when(userRepository.findByIdAndDeletedAtNull(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
 
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn(user.getEmail());
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        SecurityContextHolder.setContext(securityContext);
+
         UserResponse response = userService.update(userId, request);
 
         assertEquals(request.email(), response.email());
         verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void updateWhenNotAuthorized_ShouldThrowAccessDeniedException_() {
+        UserRequest request = new UserRequest("Updated", "updated@example.com", "newpassword");
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("unauthorized@example.com");
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByIdAndDeletedAtNull(userId)).thenReturn(Optional.of(user));
+
+        CustomAccessDeniedException exception = assertThrows(CustomAccessDeniedException.class,
+                () -> userService.update(userId, request));
+
+        assertEquals("User is not authorized to update user with id: " + userId, exception.getMessage());
     }
 
     @Test
