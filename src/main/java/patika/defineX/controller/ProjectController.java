@@ -49,7 +49,7 @@ public class ProjectController {
                     You can customize the results using query parameters:
                     - `page`: The page number (default: 0).
                     - `size`: The number of records per page (default: 20).
-                    - `sort`: Sorting criteria in the format  Examples: `createdAt,desc` (default)
+                    - `sort`: Sorting criteria in the format  Examples: `createdAt,asc` (default)
                     """
     )
     @GetMapping("/v1/list/{departmentId}")

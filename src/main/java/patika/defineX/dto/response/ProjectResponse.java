@@ -2,6 +2,7 @@ package patika.defineX.dto.response;
 
 import patika.defineX.model.Project;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 public record ProjectResponse(
@@ -10,7 +11,7 @@ public record ProjectResponse(
         String description,
         String departmentName,
         String status
-) {
+) implements Serializable {
     public static ProjectResponse from (Project project) {
         return new ProjectResponse(
                 project.getId(),

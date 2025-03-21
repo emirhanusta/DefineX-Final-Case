@@ -3,6 +3,7 @@ package patika.defineX.dto.response;
 import patika.defineX.model.Issue;
 import patika.defineX.model.enums.IssueStatus;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ public record IssueResponse(
         IssueStatus status,
         String priority,
         LocalDateTime dueDate
-) {
+) implements Serializable {
     public static IssueResponse from(Issue issue) {
         return new IssueResponse(
                 issue.getId(),

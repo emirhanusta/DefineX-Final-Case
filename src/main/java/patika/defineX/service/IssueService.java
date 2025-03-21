@@ -131,7 +131,7 @@ public class IssueService {
     @CacheEvict(value = "issues", allEntries = true)
     @EventListener
     @Transactional
-    public   void deleteAllByProjectId(ProjectDeletedEvent event) {
+    public void deleteAllByProjectId(ProjectDeletedEvent event) {
         log.info("Deleting all issues for project ID: {}", event.projectId());
         List<Issue> issues = issueRepository.findAllByProjectIdAndDeletedAtNull(event.projectId());
         issues.forEach(issue -> {
