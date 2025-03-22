@@ -43,8 +43,8 @@ class TokenServiceTest {
     void setUp() {
         tokenService = new TokenService(refreshTokenRepository);
         tokenService.token = "mYiADZOy9Hq5pTfomhj9hPUJLGAN/ZB6AZ4yoHfCtN0f8DaNQr6+4qeaJ9YfMK4ZbX85J3ao6TotW+jrLKLGeafpaYYLn2mmrYOB/1mJzhQYEaf883PtWAIwnTwHpPuEsJAhyHwEtlTvy++pZA+0bns66RUDBk80bJUA4JhJUI8";
-        tokenService.expirationTime = 3600000;
-        tokenService.expireSeconds = refreshExpirationTime;
+        tokenService.accessExpiration = 3600000;
+        tokenService.refreshExpiration = refreshExpirationTime;
     }
 
     @Test

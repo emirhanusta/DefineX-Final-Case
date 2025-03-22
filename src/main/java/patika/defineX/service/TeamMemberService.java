@@ -49,19 +49,11 @@ public class TeamMemberService {
 
     public void createTeamMember(Team team, User user) {
         logger.info("Creating team member for team with id: {} and user with id: {}", team.getId(), user.getId());
-        Optional<TeamMember> existingTeamMember = teamMemberRepository.findByTeamAndUser(team, user);
+        Optional<TeamMember> existingTeamMember = teamMemberRepository.findByTeamAndUserAndDeletedAtNull(team, user);
 
         if (existingTeamMember.isPresent()) {
-            TeamMember teamMember = existingTeamMember.get();
-            if (teamMember.isDeleted()) {
-                logger.info("Restoring deleted team member with id: {}", teamMember.getId());
-                teamMember.restore();
-                teamMemberRepository.save(teamMember);
-                return;
-            } else {
-                logger.warn("User with id: {} is already a member of team with id: {}", user.getId(), team.getId());
-                throw new CustomAlreadyExistException("User is already a member of this team!");
-            }
+            logger.warn("User with id: {} is already a member of team with id: {}", user.getId(), team.getId());
+            throw new CustomAlreadyExistException("User is already a member of this team!");
         }
 
         TeamMember teamMember = TeamMember.builder()
@@ -89,7 +81,7 @@ public class TeamMemberService {
                 });
     }
 
-    public void deleteAllByTeamId(UUID teamId) {
+    protected void deleteAllByTeamId(UUID teamId) {
         logger.info("Deleting all team members for team with id: {}", teamId);
         List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamIdAndDeletedAtNull(teamId);
         teamMembers.forEach(BaseEntity::softDelete);
@@ -97,7 +89,7 @@ public class TeamMemberService {
         logger.info("Deleted {} team members for team with id: {}", teamMembers.size(), teamId);
     }
 
-    public void deleteAllByUserId(UUID userId) {
+    protected void deleteAllByUserId(UUID userId) {
         logger.info("Deleting all team members for user with id: {}", userId);
         List<TeamMember> teamMembers = teamMemberRepository.findAllByUserIdAndDeletedAtNull(userId);
         teamMembers.forEach(BaseEntity::softDelete);

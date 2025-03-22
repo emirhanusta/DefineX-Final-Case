@@ -146,9 +146,8 @@ public class UserService {
             throw new CustomAlreadyExistException("User already exist with email: " + email);
         }
     }
-
-
-    public String getAuthenticatedUser() {
+    
+    private String getAuthenticatedUser() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

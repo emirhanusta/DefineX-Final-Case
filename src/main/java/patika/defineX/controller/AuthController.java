@@ -30,7 +30,7 @@ public class AuthController {
     @Operation(
             method = "POST",
             summary = "Login",
-            description = "Login with email and password"
+            description = "Login with 'admin@mail.com' and 'passss' for being able to access all endpoints"
     )
     @PostMapping("/v1/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest) {

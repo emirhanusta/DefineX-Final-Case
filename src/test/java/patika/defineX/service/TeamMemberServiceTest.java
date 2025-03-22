@@ -80,7 +80,7 @@ public class TeamMemberServiceTest {
 
     @Test
     void createTeamMember_WhenNotExists_ShouldCreate() {
-        when(teamMemberRepository.findByTeamAndUser(team, user)).thenReturn(Optional.empty());
+        when(teamMemberRepository.findByTeamAndUserAndDeletedAtNull(team, user)).thenReturn(Optional.empty());
         when(teamMemberRepository.save(any(TeamMember.class))).thenReturn(teamMember);
 
         teamMemberService.createTeamMember(team, user);
@@ -90,22 +90,11 @@ public class TeamMemberServiceTest {
 
     @Test
     void createTeamMember_WhenAlreadyExists_ShouldThrowException() {
-        when(teamMemberRepository.findByTeamAndUser(team, user)).thenReturn(Optional.of(teamMember));
+        when(teamMemberRepository.findByTeamAndUserAndDeletedAtNull(team, user)).thenReturn(Optional.of(teamMember));
 
         CustomAlreadyExistException exception = assertThrows(CustomAlreadyExistException.class,
                 () -> teamMemberService.createTeamMember(team, user));
         assertEquals("User is already a member of this team!", exception.getMessage());
-    }
-
-    @Test
-    void createTeamMember_WhenAlreadyDeleted() {
-        teamMember.softDelete();
-        when(teamMemberRepository.findByTeamAndUser(team, user)).thenReturn(Optional.of(teamMember));
-
-        teamMemberService.createTeamMember(team, user);
-
-        verify(teamMemberRepository, times(1)).save(teamMember);
-        assertFalse(teamMember.isDeleted());
     }
 
     @Test

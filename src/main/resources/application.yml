@@ -12,6 +12,9 @@ spring:
     password: postgres
   cache:
     type: redis
+    redis:
+      cache-null-values: true
+      time-to-live: 60000
   data:
     redis:
       host: localhost

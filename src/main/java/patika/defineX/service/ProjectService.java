@@ -141,7 +141,7 @@ public class ProjectService {
                 });
     }
 
-    protected void existsByTitle(String name) {
+    private void existsByTitle(String name) {
         log.debug("Checking if project with title '{}' already exists...", name);
         if (projectRepository.existsByTitleAndDeletedAtNull(name)) {
             log.error("Project with title '{}' already exists!", name);

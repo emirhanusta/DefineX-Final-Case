@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
     List<TeamMember> findAllByTeamIdAndDeletedAtNull(UUID id);
     Optional<TeamMember> findByIdAndDeletedAtNull(UUID id);
-    Optional<TeamMember> findByTeamAndUser(Team team, User user);
+    Optional<TeamMember> findByTeamAndUserAndDeletedAtNull(Team team, User user);
     List<TeamMember> findAllByUserIdAndDeletedAtNull(UUID userId);
 
     @Query("SELECT tm FROM TeamMember tm " +

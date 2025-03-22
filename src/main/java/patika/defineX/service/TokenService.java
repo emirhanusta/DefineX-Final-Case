@@ -30,9 +30,9 @@ public class TokenService {
     @Value("${jwt.secret-key}")
     String token;
     @Value("${jwt.access-expiration-time}")
-    Integer expirationTime;
+    Integer accessExpiration;
     @Value("${jwt.refresh-expiration-time}")
-    Integer expireSeconds;
+    Integer refreshExpiration;
 
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -63,15 +63,6 @@ public class TokenService {
         return getAllClaimsFromToken(token).getExpiration();
     }
 
-    private Claims getAllClaimsFromToken(String token) {
-        logger.debug("Parsing JWT token to get claims");
-        return Jwts.parserBuilder()
-                .setSigningKey(getKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    }
-
     public String createRefreshToken(User user) {
         logger.info("Creating refresh token for user: {}", user.getId());
         RefreshToken refreshToken = refreshTokenRepository.findByUserIdAndDeletedAtNull(user.getId());
@@ -83,7 +74,7 @@ public class TokenService {
         refreshToken = RefreshToken.builder()
                 .user(user)
                 .token(UUID.randomUUID().toString())
-                .expiryDate(Date.from(Instant.now().plusSeconds(expireSeconds)))
+                .expiryDate(Date.from(Instant.now().plusSeconds(refreshExpiration)))
                 .build();
 
         refreshTokenRepository.save(refreshToken);
@@ -131,18 +122,27 @@ public class TokenService {
         refreshTokenRepository.save(token);
     }
 
+    private Claims getAllClaimsFromToken(String token) {
+        logger.debug("Parsing JWT token to get claims");
+        return Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
     private String createAccessToken(Map<String, Object> claims, String email) {
         logger.info("Creating access token for email: {}", email);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .setExpiration(new Date(System.currentTimeMillis() + accessExpiration))
                 .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    Key getKey() {
+    protected Key getKey() {
         logger.debug("Getting key for JWT signing");
         byte[] keyBytes = Decoders.BASE64.decode(token);
         return Keys.hmacShaKeyFor(keyBytes);
