@@ -14,7 +14,7 @@ spring:
     type: redis
     redis:
       cache-null-values: true
-      time-to-live: 60000
+      time-to-live: 600000  # 10 minutes (10 * 60 * 1000)
   data:
     redis:
       host: localhost
