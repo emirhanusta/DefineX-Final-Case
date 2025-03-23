@@ -2,7 +2,7 @@
 
 ## About the Project
 
-This project developed for the DefineX Final Case Study. The project is a task manager API that allows users to create, update, delete, and list tasks. The project has a user management system that allows users to register, login, and logout. The project has a role-based access control system. The project has three roles, `Project Manager`, `Team Leader` and `Team Member`. The project has a token-based authentication system. The project has a Redis cache system that stores the tokens. The project has a PostgreSQL database that stores the users and tasks. The project has a Swagger UI that allows users to test the API.
+This application is designed to streamline project and task management processes. Users can log in with different roles to create projects linked to departments, form teams within these projects, assign tasks, and track progress. Additionally, they can upload relevant documents and leave comments on tasks.
 
 ## Technologies Used
 
@@ -33,7 +33,7 @@ $ docker-compose up
   (Login with 'admin@mail.com' and 'passss' for being able to access all endpoints)
 ## Database Diagram
 
-![Image](https://github.com/user-attachments/assets/45c96b93-6fe3-4577-a88e-b5588a576c72)
+![Image](https://github.com/user-attachments/assets/92b23986-59f7-4b95-97e7-8e8be75481a2)
 
 ## Screenshots
 
