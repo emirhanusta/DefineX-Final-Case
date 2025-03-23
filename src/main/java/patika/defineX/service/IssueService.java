@@ -19,6 +19,7 @@ import patika.defineX.event.ProjectDeletedEvent;
 import patika.defineX.exception.custom.CustomNotFoundException;
 import patika.defineX.exception.custom.StatusChangeException;
 import patika.defineX.model.Issue;
+import patika.defineX.model.User;
 import patika.defineX.model.enums.IssueStatus;
 import patika.defineX.repository.IssueRepository;
 
@@ -56,10 +57,12 @@ public class IssueService {
 
     @CacheEvict(value = "issues", allEntries = true)
     public IssueResponse save(IssueRequest issueRequest) {
-        log.info("Saving new issue with project ID: {} and reporter ID: {}", issueRequest.projectId(), issueRequest.reporterId());
+        log.info("Saving new issue with title: {}", issueRequest.title());
         Issue issue = IssueRequest.from(issueRequest);
+        User reporter = userService.getAuthenticatedUser();
+
         issue.setProject(projectService.findById(issueRequest.projectId()));
-        issue.setReporter(userService.findById(issueRequest.reporterId()));
+        issue.setReporter(reporter);
         if (issueRequest.assigneeId() != null) {
             issue.setAssignee(userService.findById(issueRequest.assigneeId()));
         }

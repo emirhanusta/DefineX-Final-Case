@@ -17,8 +17,6 @@ public record IssueRequest(
         @NotNull
         UUID projectId,
         UUID assigneeId,
-        @NotNull
-        UUID reporterId,
         @NotBlank
         @Size(min = 2, max = 50)
         String title,

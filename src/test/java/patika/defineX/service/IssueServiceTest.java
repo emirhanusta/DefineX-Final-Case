@@ -91,7 +91,6 @@ class IssueServiceTest {
 
         issueRequest = IssueRequest.builder()
                 .projectId(projectId)
-                .reporterId(reporterId)
                 .assigneeId(assigneeId)
                 .title("New Issue")
                 .description("New Description")
@@ -137,6 +136,7 @@ class IssueServiceTest {
         newIssue.setReporter(user);
         newIssue.setProject(project);
         when(issueRepository.save(any(Issue.class))).thenReturn(newIssue);
+        when(userService.getAuthenticatedUser()).thenReturn(user);
 
         IssueResponse response = issueService.save(issueRequest);
 

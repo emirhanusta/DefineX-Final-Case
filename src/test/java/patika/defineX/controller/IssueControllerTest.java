@@ -76,7 +76,6 @@ class IssueControllerTest {
         issueRequest = new IssueRequest(
                 projectId,
                 assigneeId,
-                reporterId,
                 "Test Issue",
                 "Test Description",
                 IssueType.BUG,
