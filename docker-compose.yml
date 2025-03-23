@@ -26,9 +26,7 @@ services:
 
     app:
       container_name: task-manager
-      build:
-        context: ./
-        dockerfile: Dockerfile
+      image: emirhanusta/task-manager
       ports:
         - "8080:8080"
       environment:
