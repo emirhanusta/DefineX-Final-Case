@@ -30,7 +30,7 @@ $ docker-compose up
 ```
 
 - **You can reach the swagger-ui via**  `http://localhost:8080/swagger-ui/index.html`
-
+  (Login with 'admin@mail.com' and 'passss' for being able to access all endpoints)
 ## Database Diagram
 
 ![Image](https://github.com/user-attachments/assets/45c96b93-6fe3-4577-a88e-b5588a576c72)
@@ -44,3 +44,9 @@ $ docker-compose up
 ![Image](https://github.com/user-attachments/assets/8e3c0459-424f-4443-a58b-d220338c8309)
 ![Image](https://github.com/user-attachments/assets/472aff40-dd61-4ac0-9957-0483f78d7015)
 ![Image](https://github.com/user-attachments/assets/ed5a8843-a769-472a-9d26-3b18e96a2cec)
+
+## Diagrams
+
+![Image](https://github.com/user-attachments/assets/f3798b98-29f7-4ec7-a0ef-fcadb0c3c507)
+![Image](https://github.com/user-attachments/assets/0884131c-b065-42ae-b397-1eee206629eb)
+![Image](https://github.com/user-attachments/assets/c6c414b9-49f5-4595-8a5f-318082014ba4)
