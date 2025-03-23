@@ -45,8 +45,7 @@ public class IssueHistoryService {
     @EventListener
     public void createHistory(HistoryCreatedEvent historyCreatedEvent) {
         logger.info("Creating history record for issue with id: {}", historyCreatedEvent.issue().getId());
-        User user = historyCreatedEvent.request().changedBy() != null ?
-                userService.findById(historyCreatedEvent.request().changedBy()) : null;
+        User user = userService.getAuthenticatedUser();
         IssueHistory issueHistory = IssueHistory.builder()
                 .issue(historyCreatedEvent.issue())
                 .previousStatus(historyCreatedEvent.issue().getStatus())

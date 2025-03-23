@@ -38,19 +38,17 @@ class IssueHistoryServiceTest {
     private IssueHistoryService issueHistoryService;
 
     private UUID issueId;
-    private UUID userId;
     private Issue issue;
-    private User user;
     private IssueHistory issueHistory;
 
     @BeforeEach
     void setUp() {
         issueId = UUID.randomUUID();
-        userId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         issue = new Issue();
         issue.setId(issueId);
 
-        user = new User();
+        User user = new User();
         user.setId(userId);
 
         issueHistory = IssueHistory.builder()
@@ -77,10 +75,9 @@ class IssueHistoryServiceTest {
 
     @Test
     void createHistory_ShouldSaveHistory() {
-        IssueStatusChangeRequest request = new IssueStatusChangeRequest(userId, IssueStatus.COMPLETED, "Issue resolved");
+        IssueStatusChangeRequest request = new IssueStatusChangeRequest(IssueStatus.COMPLETED, "Issue resolved");
         HistoryCreatedEvent event = new HistoryCreatedEvent(issue, request);
 
-        when(userService.findById(userId)).thenReturn(user);
         when(issueHistoryRepository.save(any(IssueHistory.class))).thenReturn(issueHistory);
 
         issueHistoryService.createHistory(event);

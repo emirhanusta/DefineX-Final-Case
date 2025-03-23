@@ -51,7 +51,6 @@ class IssueServiceTest {
 
     private UUID projectId;
     private UUID issueId;
-    private UUID reporterId;
     private UUID assigneeId;
     private Issue issue;
     private IssueRequest issueRequest;
@@ -62,7 +61,7 @@ class IssueServiceTest {
     void setUp() {
         projectId = UUID.randomUUID();
         issueId = UUID.randomUUID();
-        reporterId = UUID.randomUUID();
+        UUID reporterId = UUID.randomUUID();
         assigneeId = UUID.randomUUID();
 
         user = User.builder()
@@ -180,7 +179,7 @@ class IssueServiceTest {
     @Test
     void updateStatus_WhenValid_ShouldChangeStatus() {
         IssueStatusChangeRequest statusChangeRequest = new IssueStatusChangeRequest(
-                reporterId, IssueStatus.IN_ANALYSIS, null
+                IssueStatus.IN_ANALYSIS, null
         );
 
         when(issueRepository.findByIdAndDeletedAtNull(issueId)).thenReturn(Optional.of(issue));
@@ -195,7 +194,7 @@ class IssueServiceTest {
     @Test
     void updateStatus_WhenSameStatus_ShouldNotChangeStatus() {
         IssueStatusChangeRequest statusChangeRequest = new IssueStatusChangeRequest(
-                reporterId, IssueStatus.BACKLOG, null
+                IssueStatus.BACKLOG, null
         );
 
         when(issueRepository.findByIdAndDeletedAtNull(issueId)).thenReturn(Optional.of(issue));
@@ -209,7 +208,7 @@ class IssueServiceTest {
     @Test
     void updateStatus_WhenInvalidChange_ShouldThrowException() {
         IssueStatusChangeRequest statusChangeRequest = new IssueStatusChangeRequest(
-                reporterId, IssueStatus.BLOCKED, "reason"
+                IssueStatus.BLOCKED, "reason"
         );
 
         when(issueRepository.findByIdAndDeletedAtNull(issueId)).thenReturn(Optional.of(issue));
@@ -220,7 +219,7 @@ class IssueServiceTest {
     @Test
     void updateStatus_IsIssueCompleted_ShouldThrowException() {
         IssueStatusChangeRequest statusChangeRequest = new IssueStatusChangeRequest(
-                reporterId, IssueStatus.IN_PROGRESS, null
+                IssueStatus.IN_PROGRESS, null
         );
         issue.setStatus(IssueStatus.COMPLETED);
 
@@ -232,7 +231,7 @@ class IssueServiceTest {
     @Test
     void updateStatus_WhenNoReasonProvided_ShouldThrowException() {
         IssueStatusChangeRequest statusChangeRequest = new IssueStatusChangeRequest(
-                reporterId, IssueStatus.CANCELLED, null
+                IssueStatus.CANCELLED, null
         );
 
         when(issueRepository.findByIdAndDeletedAtNull(issueId)).thenReturn(Optional.of(issue));
@@ -243,7 +242,7 @@ class IssueServiceTest {
     @Test
     void updateStatus_WhenIssueChangeIsInvalid_ShouldThrowException() {
         IssueStatusChangeRequest statusChangeRequest = new IssueStatusChangeRequest(
-                reporterId, IssueStatus.COMPLETED, null
+                IssueStatus.COMPLETED, null
         );
 
         when(issueRepository.findByIdAndDeletedAtNull(issueId)).thenReturn(Optional.of(issue));

@@ -160,11 +160,7 @@ class IssueControllerTest {
 
     @Test
     void updateStatus_ShouldChangeIssueStatus() throws Exception {
-        IssueStatusChangeRequest statusChangeRequest = new IssueStatusChangeRequest(
-                reporterId,
-                IssueStatus.CANCELLED,
-                "Issue resolved"
-        );
+        IssueStatusChangeRequest statusChangeRequest = new IssueStatusChangeRequest(IssueStatus.CANCELLED,"Issue resolved");
 
         IssueResponse updatedResponse = new IssueResponse(
                 issueId,

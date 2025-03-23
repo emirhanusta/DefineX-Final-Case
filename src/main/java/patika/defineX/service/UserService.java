@@ -63,7 +63,7 @@ public class UserService {
         logger.info("Updating user with id: {}", id);
         User user = findById(id);
 
-        if (!Objects.equals(user.getEmail(), getAuthenticatedUser())){
+        if (!Objects.equals(user.getEmail(), getAuthenticatedUser().getEmail())){
             logger.error("User is not authorized to update user with id: {}", id);
             throw new CustomAccessDeniedException("User is not authorized to update user with id: " + id);
         }
@@ -71,6 +71,7 @@ public class UserService {
         if (!user.getEmail().equals(userRequest.email())) {
             existsByEmail(userRequest.email());
         }
+
         user.setName(userRequest.name());
         user.setEmail(userRequest.email());
         user.setPassword(userRequest.password());
@@ -139,15 +140,16 @@ public class UserService {
                 });
     }
 
-    private void existsByEmail(String email) {
+    protected User getAuthenticatedUser() {
+        String email =  SecurityContextHolder.getContext().getAuthentication().getName();
+        return findByEmail(email);
+    }
+
+    protected void existsByEmail(String email) {
         logger.debug("Checking if user exists with email: {}", email);
         if (userRepository.existsByEmailAndDeletedAtNull(email)) {
             logger.error("User already exists with email: {}", email);
             throw new CustomAlreadyExistException("User already exist with email: " + email);
         }
-    }
-    
-    private String getAuthenticatedUser() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

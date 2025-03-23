@@ -101,41 +101,59 @@ class UserServiceTest {
     @Test
     void update_ShouldUpdateUser() {
         UserRequest request = new UserRequest("Updated", "updated@example.com", "newpassword");
+
+        UserService userServiceSpy = spy(userService);
         when(userRepository.findByIdAndDeletedAtNull(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenReturn(user);
+        doReturn(user).when(userServiceSpy).getAuthenticatedUser();
 
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn(user.getEmail());
+        user.setName(request.name());
+        user.setEmail(request.email());
+        user.setPassword(request.password());
 
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-
-        SecurityContextHolder.setContext(securityContext);
-
-        UserResponse response = userService.update(userId, request);
+        UserResponse response = userServiceSpy.update(userId, request);
 
         assertEquals(request.email(), response.email());
+        assertEquals(request.name(), response.name());
         verify(userRepository, times(1)).save(user);
     }
 
     @Test
-    void updateWhenNotAuthorized_ShouldThrowAccessDeniedException_() {
+    void update_WhenNotAuthorized_ShouldThrowAccessDeniedException() {
         UserRequest request = new UserRequest("Updated", "updated@example.com", "newpassword");
 
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("unauthorized@example.com");
-
-        SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-
-        SecurityContextHolder.setContext(securityContext);
+        UserService userServiceSpy = spy(userService);
+        User unauthorizedUser = User.builder()
+                .name("unauthorized")
+                .email("unauthorized@example.com")
+                .password("password")
+                .build();
 
         when(userRepository.findByIdAndDeletedAtNull(userId)).thenReturn(Optional.of(user));
+        doReturn(unauthorizedUser).when(userServiceSpy).getAuthenticatedUser();
 
         CustomAccessDeniedException exception = assertThrows(CustomAccessDeniedException.class,
-                () -> userService.update(userId, request));
+                () -> userServiceSpy.update(userId, request));
 
         assertEquals("User is not authorized to update user with id: " + userId, exception.getMessage());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void update_WhenEmailAlreadyExists_ShouldThrowException() {
+        UserRequest request = new UserRequest("Updated Name", "newemail@example.com", "newpassword");
+
+        UserService userServiceSpy = spy(userService);
+        when(userRepository.findByIdAndDeletedAtNull(userId)).thenReturn(Optional.of(user));
+        doReturn(user).when(userServiceSpy).getAuthenticatedUser();
+        doThrow(new CustomAlreadyExistException("Email already exists"))
+                .when(userServiceSpy).existsByEmail(request.email());
+
+        CustomAlreadyExistException exception = assertThrows(CustomAlreadyExistException.class,
+                () -> userServiceSpy.update(userId, request));
+
+        assertEquals("Email already exists", exception.getMessage());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -199,6 +217,27 @@ class UserServiceTest {
         verify(userRepository, times(1)).save(user);
         verify(teamMemberService, times(1)).deleteAllByUserId(userId);
         verify(tokenService, times(1)).deleteRefreshTokenByUserId(userId);
+    }
+
+
+    @Test
+    void getAuthenticatedUser_ShouldReturnUser_WhenAuthenticated() {
+        user.setEmail("test@example.com");
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn(user.getEmail());
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByEmailAndDeletedAtNull(user.getEmail())).thenReturn(Optional.of(user));
+
+        User authenticatedUser = userService.getAuthenticatedUser();
+
+        assertNotNull(authenticatedUser);
+        assertEquals(user.getEmail(), authenticatedUser.getEmail());
+        verify(userRepository, times(1)).findByEmailAndDeletedAtNull(user.getEmail());
     }
 
     @Test
