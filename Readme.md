@@ -25,6 +25,7 @@ This project developed for the DefineX Final Case Study. The project is a task m
 ```sh
 
 $ git clone https://github.com/emirhanusta/DefineX-Final-Case.git
+$ cd DefineX-Final-Case
 $ docker-compose up
 ```
 
