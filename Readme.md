@@ -24,8 +24,8 @@ This application is designed to streamline project and task management processes
 
 ```sh
 
-$ git clone https://github.com/emirhanusta/DefineX-Final-Case.git
-$ cd DefineX-Final-Case
+$ git clone https://github.com/emirhanusta/Task-Manager.git
+$ cd Task-Manager
 $ docker-compose up
 ```
 
